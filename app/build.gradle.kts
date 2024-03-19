@@ -42,7 +42,7 @@ javafx {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "orders.App"
 }
 
 tasks.named<Test>("test") {

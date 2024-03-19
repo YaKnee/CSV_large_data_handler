@@ -1,4 +1,4 @@
-package org.example;
+package orders;
 
 import com.opencsv.*;
 import javafx.application.Application;
@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 
@@ -72,7 +73,7 @@ public class App extends Application{
         // root.addRow(2, customerPerStateBtn);
         // root.getChildren().addAll(cityLabel,cityInput,searchBtn, cityOutput,salesBtn, customerPerStateBtn);
         Scene scene = new Scene(root);
-        scene.getStylesheets().add("app/stylesheet.css");
+        scene.getStylesheets().add("stylesheet.css");
         primaryStage.setScene(scene);
         primaryStage.setTitle("SuperStore Data");
         primaryStage.setOnCloseRequest(event -> System.exit(0));

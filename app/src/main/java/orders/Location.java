@@ -1,4 +1,4 @@
-package org.example;
+package orders;
 
 public record Location(String city, String state, String Region) {
 //    private String city;

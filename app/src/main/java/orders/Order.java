@@ -1,4 +1,4 @@
-package org.example;
+package orders;
 
 public record Order(Customer customer, String orderDate, String shippingMode, Location location,
                     Product product, int sales, int quantity, int discount, int profit){
