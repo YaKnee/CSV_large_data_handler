@@ -1,6 +1,6 @@
 package orders;
 
-public record Order(Customer customer, String orderDate, String shippingMode, Location location,
+public record Order( ShippingOrder shipOrder, Customer customer, Location location,
                     Product product, int sales, int quantity, int discount, int profit){
 //    private Customer customer;
 //    private String orderDate;
