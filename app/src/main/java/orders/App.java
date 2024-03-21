@@ -12,13 +12,16 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 //TO DO
 ////Add Threading for Buttons
 ////Selector for States/Customers + Search bars
 ////View summary of orders of customer
+////Customers per State... Include all as well
 ////Average Sales amounts of the orders                 (done?)
 ////Customer with most sales
 ////Count segments
@@ -35,6 +38,25 @@ public class App extends Application{
         ArrayList<Order> orders = readCSVData("data/SuperStoreOrders.csv");
         Set<Location> uniqueLocations = extractLocations(orders);
 
+        Set<String> uniqueStates = new HashSet<>();
+        for (Location location : uniqueLocations) {
+            uniqueStates.add(location.state());
+        }
+
+        Map<String, Long> customersPerState = new HashMap<>();
+        int i =0;
+        for (String state : uniqueStates) {
+            long customersInState = orders.stream()
+                    .filter(order -> state.equalsIgnoreCase(order.location().state()))
+                    .map(Order::customer)
+                    .map(Customer::customerId)
+                    .distinct()
+                    .count();
+            customersPerState.put(state, customersInState);
+            i++;
+            System.out.println(i + ": State: " + state + ": count: " + customersInState);
+        }
+
         Label stateLabel=new Label("State:"); 
         TextField stateInput=new TextField();
         Button stateSearchBtn = new Button("Search");
@@ -49,11 +71,11 @@ public class App extends Application{
                 boolean stateExists = uniqueLocations.stream()
                 .anyMatch(location -> state.equalsIgnoreCase(location.state()));
                 if (stateExists) {
-                    int customersInState = (int) orders.stream()
+                    int ordersPerState = (int) orders.stream()
                     .filter(order -> state.equalsIgnoreCase(order.location().state()))
                     .count();
-                    System.out.println("Customers in " + toProperCase(state) + ": " + customersInState);
-                    stateOutput.setText("Customers in " + toProperCase(state) + ": " + customersInState);
+                    System.out.println("Orders in " + toProperCase(state) + ": " + ordersPerState);
+                    stateOutput.setText("Orders in " + toProperCase(state) + ": " + ordersPerState);
                 } else {
                     System.out.println("State not found.");
                     stateOutput.setText("State not found.");
