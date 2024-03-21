@@ -21,7 +21,7 @@ import java.util.Set;
 ////Add Threading for Buttons
 ////Selector for States/Customers + Search bars
 ////View summary of orders of customer
-////Customers per State... Include all as well
+////Customers per State                                 (done!)
 ////Average Sales amounts of the orders                 (done?)
 ////Customer with most sales
 ////Count segments
@@ -38,6 +38,8 @@ public class App extends Application{
         ArrayList<Order> orders = readCSVData("data/SuperStoreOrders.csv");
         Set<Location> uniqueLocations = extractLocations(orders);
 
+
+        //--------------------------Customers per State---------------------
         Set<String> uniqueStates = new HashSet<>();
         for (Location location : uniqueLocations) {
             uniqueStates.add(location.state());
@@ -47,16 +49,16 @@ public class App extends Application{
         int i =0;
         for (String state : uniqueStates) {
             long customersInState = orders.stream()
-                    .filter(order -> state.equalsIgnoreCase(order.location().state()))
+                    .filter(order -> state.equals(order.location().state()))
                     .map(Order::customer)
                     .map(Customer::customerId)
                     .distinct()
                     .count();
             customersPerState.put(state, customersInState);
-            i++;
-            System.out.println(i + ": State: " + state + ": count: " + customersInState);
+            System.out.println(++i + ": State: " + state + ": count: " + customersInState);
         }
 
+        //-------------------------------Search by state for total Orders--------------------
         Label stateLabel=new Label("State:"); 
         TextField stateInput=new TextField();
         Button stateSearchBtn = new Button("Search");
@@ -83,18 +85,25 @@ public class App extends Application{
             }
         });
 
+        //--------------------Find Customer------------------------------
         Label customerLabel=new Label("Customer Count:"); 
         TextField customerInput=new TextField();
         Button customerSearchBtn = new Button("Search");
         customerSearchBtn.getStyleClass().add(".button");
         Label customerOutput = new Label();
         customerSearchBtn.setOnAction(e-> {
-            if (customerInput.getText() == null || customerInput.getText().isEmpty()) { ////////////////or not found in search
+            String customerName = customerInput.getText();
+            if (customerName == null || customerName.isEmpty()) {
                 customerOutput.setText("Unknown Customer");
             }else {
-                
-                System.out.println("You entered Customer: " + customerInput.getText());
-                customerOutput.setText(toProperCase(customerInput.getText()));
+                boolean customerExists = orders.stream()
+                .anyMatch(order -> customerName.equalsIgnoreCase(order.customer().name()));
+                if (customerExists) {
+                    customerOutput.setText("Customer found: " + toProperCase(customerName));
+                } else {
+                    customerOutput.setText("Customer not found.");
+                }
+
             }
         });
 
