@@ -99,6 +99,18 @@ public class App extends Application{
                 boolean customerExists = orders.stream()
                 .anyMatch(order -> customerName.equalsIgnoreCase(order.customer().name()));
                 if (customerExists) {
+                    ArrayList<Order> ordersForCustomer = new ArrayList<>();
+                    for (Order order : orders) {
+                        ////////////////////////////find it by ID instead of name
+                        if (customerName.equals(order.customer().name())) {
+                            ordersForCustomer.add(order);
+                        }
+                    }
+                    long totalSales = 0;
+                    for (Order order : ordersForCustomer) {
+                        totalSales += order.sales();
+                    }
+                    System.out.println(customerName + " had " + totalSales + " total sales.");
                     customerOutput.setText("Customer found: " + toProperCase(customerName));
                 } else {
                     customerOutput.setText("Customer not found.");
