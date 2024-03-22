@@ -23,7 +23,7 @@ import java.util.Set;
 ////View summary of orders of customer
 ////Customers per State                                 (done!)
 ////Average Sales amounts of the orders                 (done?)
-////Customer with most sales
+////Customer with most sales                            (done!)
 ////Count segments
 ////total sales per year
 ////total sales per region
@@ -46,7 +46,7 @@ public class App extends Application{
         }
 
         Map<String, Long> customersPerState = new HashMap<>();
-        int i =0;
+        int i = 0;
         for (String state : uniqueStates) {
             long customersInState = orders.stream()
                     .filter(order -> state.equals(order.location().state()))
@@ -55,7 +55,7 @@ public class App extends Application{
                     .distinct()
                     .count();
             customersPerState.put(state, customersInState);
-            System.out.println(++i + ": State: " + state + ": count: " + customersInState);
+            //System.out.println(++i + ": State: " + state + ": count: " + customersInState);
         }
 
         //-------------------------------Search by state for total Orders--------------------
@@ -85,6 +85,35 @@ public class App extends Application{
             }
         });
 
+        //--------------------Find Customer with most sales----------------
+        Map<String, Integer> salesPerCustomer = new HashMap<>();
+        for (Order order : orders) {
+            String customerId = order.customer().customerId();
+            int sales = order.sales();
+            salesPerCustomer.put(customerId, salesPerCustomer.getOrDefault(customerId, 0) + sales);
+        }
+        
+        String customerWithMostSales = "";
+        int mostSales = 0;
+
+        for (Map.Entry<String, Integer> entry : salesPerCustomer.entrySet()) {
+            if (entry.getValue() > mostSales) {
+                mostSales = entry.getValue();
+                customerWithMostSales = entry.getKey();
+            }
+        }
+
+        for (Order order : orders) {
+            if (order.customer().customerId().equals(customerWithMostSales)) {
+                System.out.print("Customer ID: " + order.customer().customerId());
+                System.out.print(", Name: " + order.customer().name());
+                System.out.print(", Segment: " + order.customer().segment());
+                System.out.println(", Sales: " + mostSales);
+                break; 
+            }
+        }
+
+
         //--------------------Find Customer------------------------------
         Label customerLabel=new Label("Customer Count:"); 
         TextField customerInput=new TextField();
@@ -92,7 +121,7 @@ public class App extends Application{
         customerSearchBtn.getStyleClass().add(".button");
         Label customerOutput = new Label();
         customerSearchBtn.setOnAction(e-> {
-            String customerName = customerInput.getText();
+            String customerName =customerInput.getText();
             if (customerName == null || customerName.isEmpty()) {
                 customerOutput.setText("Unknown Customer");
             }else {
