@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 //TO DO
 ////Add Threading for Buttons
@@ -66,7 +67,7 @@ public class App extends Application{
         Label stateOutput = new Label();
 
         stateSearchBtn.setOnAction(e-> {
-            String state = stateInput.getText();
+            String state = toProperCase(stateInput.getText());
             if (state == null || state.isEmpty()) {
                 stateOutput.setText("Empty search bar.");
             }else {
@@ -76,8 +77,8 @@ public class App extends Application{
                     int ordersPerState = (int) orders.stream()
                     .filter(order -> state.equalsIgnoreCase(order.location().state()))
                     .count();
-                    System.out.println("Orders in " + toProperCase(state) + ": " + ordersPerState);
-                    stateOutput.setText("Orders in " + toProperCase(state) + ": " + ordersPerState);
+                    System.out.println("Orders in " + state + ": " + ordersPerState);
+                    stateOutput.setText("Orders in " + state + ": " + ordersPerState);
                 } else {
                     System.out.println("State not found.");
                     stateOutput.setText("State not found.");
@@ -112,7 +113,11 @@ public class App extends Application{
                 break; 
             }
         }
-
+        //--------------------------Sales per Region-------------------
+        /////////////////////////////////////////////////////////////////////Use Collectors for other methods
+        Map<String, Long> salesPerRegion = orders.stream()
+        .collect(Collectors.groupingBy(order -> order.location().region(), Collectors.summingLong(Order::sales)));
+        salesPerRegion.forEach((region, sales) -> System.out.println(region + " Sales: " + sales));
 
         //--------------------Find Customer------------------------------
         Label customerLabel=new Label("Customer Count:"); 
@@ -142,6 +147,7 @@ public class App extends Application{
 
         salesBtn.setOnAction(e -> {
             long totalSales = orders.stream().mapToLong(Order::sales).sum();
+            //System.out.println("Total Sales: " + totalSales);
             double averageSales = (double) totalSales / orders.size();
             System.out.println("Total Average Sales: " + averageSales);
         });
