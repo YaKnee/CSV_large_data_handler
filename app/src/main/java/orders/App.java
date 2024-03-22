@@ -120,36 +120,26 @@ public class App extends Application{
         Button customerSearchBtn = new Button("Search");
         customerSearchBtn.getStyleClass().add(".button");
         Label customerOutput = new Label();
+
         customerSearchBtn.setOnAction(e-> {
-            String customerName =customerInput.getText();
+            String customerName = toProperCase(customerInput.getText());
             if (customerName == null || customerName.isEmpty()) {
                 customerOutput.setText("Unknown Customer");
             }else {
-                boolean customerExists = orders.stream()
-                .anyMatch(order -> customerName.equalsIgnoreCase(order.customer().name()));
-                if (customerExists) {
-                    ArrayList<Order> ordersForCustomer = new ArrayList<>();
-                    for (Order order : orders) {
-                        ////////////////////////////find it by ID instead of name
-                        if (customerName.equals(order.customer().name())) {
-                            ordersForCustomer.add(order);
-                        }
-                    }
-                    long totalSales = 0;
-                    for (Order order : ordersForCustomer) {
-                        totalSales += order.sales();
-                    }
+                if (salesPerCustomer.containsKey(customerName)) {
+                    long totalSales = salesPerCustomer.get(customerName);
                     System.out.println(customerName + " had " + totalSales + " total sales.");
                     customerOutput.setText("Customer found: " + toProperCase(customerName));
                 } else {
                     customerOutput.setText("Customer not found.");
                 }
-
             }
         });
 
+        //--------------------------Total Average Sales-------------------------
         Button salesBtn = new Button("Average Sales");
         salesBtn.getStyleClass().add(".button");
+
         salesBtn.setOnAction(e -> {
             long totalSales = orders.stream().mapToLong(Order::sales).sum();
             double averageSales = (double) totalSales / orders.size();
