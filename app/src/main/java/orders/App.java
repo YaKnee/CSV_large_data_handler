@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 ////Customer with most sales                            (done!)
 ////Count segments
 ////total sales per year
-////total sales per region
+////total sales per region                              (done!)
 ////****Testing****
 ////JavaDocs
 ////Make Pretty
@@ -120,7 +121,7 @@ public class App extends Application{
         salesPerRegion.forEach((region, sales) -> System.out.println(region + " Sales: " + sales));
 
         //--------------------Find Customer------------------------------
-        Label customerLabel=new Label("Customer Count:"); 
+        Label customerLabel=new Label("Customer Name:"); 
         TextField customerInput=new TextField();
         Button customerSearchBtn = new Button("Search");
         customerSearchBtn.getStyleClass().add(".button");
@@ -131,13 +132,20 @@ public class App extends Application{
             if (customerName == null || customerName.isEmpty()) {
                 customerOutput.setText("Unknown Customer");
             }else {
-                if (salesPerCustomer.containsKey(customerName)) {
-                    long totalSales = salesPerCustomer.get(customerName);
-                    System.out.println(customerName + " had " + totalSales + " total sales.");
-                    customerOutput.setText("Customer found: " + toProperCase(customerName));
-                } else {
-                    customerOutput.setText("Customer not found.");
-                }
+                Optional<String> customerId = orders.stream()
+                .filter(order -> customerName.equals(order.customer().name()))
+                .map(Order::customer)
+                .map(Customer::customerId)
+                .findFirst();
+
+        if (customerId.isPresent()) {
+            String ID = customerId.get();
+            long totalSales = salesPerCustomer.get(ID);
+            System.out.println(customerName + " had " + totalSales + " total sales.");
+            customerOutput.setText("Customer found: " + toProperCase(customerName));
+        } else {
+            customerOutput.setText("Customer not found.");
+        }
             }
         });
 
@@ -177,11 +185,11 @@ public class App extends Application{
         primaryStage.setOnCloseRequest(event -> System.exit(0));
         primaryStage.show();
     }
-    public static void main(String[] args) {
-        launch(args);
-        //System.out.println(new App().getGreeting());
-        //List<Order> orders = readCSVData("data/SuperStoreOrders.csv");
-    }
+    // public static void main(String[] args) {
+    //     launch(args);
+    //     //System.out.println(new App().getGreeting());
+    //     //List<Order> orders = readCSVData("data/SuperStoreOrders.csv");
+    // }
 
     private static ArrayList<Order> readCSVData(String file) {
         ArrayList<Order> allOrders = new ArrayList<>();
