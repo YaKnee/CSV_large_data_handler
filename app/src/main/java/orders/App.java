@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.text.NumberFormat;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,8 +28,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import orders.CSVHandler.CSVDataReader;
-import orders.OrderObjects.*;
-
 
 
 
@@ -40,7 +39,7 @@ import orders.OrderObjects.*;
 ////Average Sales amounts of the orders                 (done?)
 ////Customer with most sales                            (done!)
 ////Count segments                                      (done!)
-////total sales per year
+////total sales per year                                (done!)
 ////total sales per region                              (done!)
 ////****Testing****
 ////JavaDocs
@@ -48,6 +47,7 @@ import orders.OrderObjects.*;
 
 public class App extends Application{
 
+    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -69,7 +69,10 @@ public class App extends Application{
         }
 
 
-        //--------------------------------Customer with Most Sales-------------------------------
+
+        //====================================================================================
+        //----------------------------------CUSTOMER WITH MOST SALES--------------------------
+        //====================================================================================
         String customerWithMostSales = "";
         int mostSales = 0;
 
@@ -90,13 +93,16 @@ public class App extends Application{
             }
         }
        
-        //--------------------Find Customer------------------------------
+
+        //====================================================================================
+        //---------------------------FIND CUSTOMER AND DISPLAY ORDERS-------------------------
+        //====================================================================================
         TableView<Order> table = new TableView<>();
         table.setVisible(false);
         Label tableHeading = new Label();
         Label customerLabel=new Label("Customer Name:"); 
         ComboBox<String> nameComboBox = new ComboBox<String>();
-        autoFillCombBox(nameComboBox, customerNameAndID.keySet());
+        autoFillComboBox(nameComboBox, customerNameAndID.keySet());
         Button customerSearchBtn = new Button("Search");
         customerSearchBtn.getStyleClass().add(".button");
         Label customerOutput = new Label();
@@ -124,141 +130,142 @@ public class App extends Application{
             }
         });
 
+        //====================================================================================
+        //--------------------------TOTAL CUSTOMERS PER SEGMENT-------------------------------
+        //====================================================================================
+        Map<String, Integer> totalCustomersPerSegment = orders.stream()
+        .collect(Collectors.groupingBy(order ->
+            order.customer().segment(),
+            Collectors.mapping(order -> 
+                order.customer().customerId(), 
+                Collectors.collectingAndThen(
+                    Collectors.counting(),
+                    Long::intValue
+                ))
+        ));
 
-        //Iterate through segments to find values or keep as hardcode?
-        String[] segments = {"Consumer", "Corporate", "Home Office"};
-        int consCustomers = 0;
-        int corpCustomers = 0;
-        int offcCustomers = 0;
-        for (Order order : orders) {
-            String segment = order.customer().segment();
-            if (segment.equals(segments[0])) {
-                consCustomers++;
-            } else if (segment.equals(segments[1])) {
-                corpCustomers++;
-            } else if (segment.equals(segments[2])) {
-                offcCustomers++;
-            }
-        }
-        System.out.println("cons: " + consCustomers);
-        System.out.println("corp: " + corpCustomers);
-        System.out.println("home: " + offcCustomers);
-
-
-
-        //Just hard code the 4 years???
-        Set<String> uniqueYears = new HashSet<>();
-        for (Order order : orders) {
-            uniqueYears.add(order.shipOrder().orderDate().substring(order.shipOrder().orderDate().length() - 4));
-        }
+        Label segmentLabel = new Label("Segment: ");
+        ComboBox<String> segmentComboBox = new ComboBox<String>();
+        autoFillComboBox(segmentComboBox, totalCustomersPerSegment.keySet());
+        Button segmentSearchBtn = new Button("Search");
+        segmentSearchBtn.getStyleClass().add(".button");
+        Label segmentOutput = new Label();
+        handleButtonClick(totalCustomersPerSegment, segmentSearchBtn, segmentComboBox, segmentOutput, "Customers");
 
 
-        Label yearLabel = new Label("Orders in Year: ");
+        //====================================================================================
+        //-----------------------------------TOTAL SALES PER YEAR-----------------------------
+        //====================================================================================
+        Map<String, Long> salesPerYear = orders.stream()
+        .collect(Collectors.groupingBy(order ->
+            order.shipOrder().orderDate().substring(order.shipOrder().orderDate().length() - 4),
+            Collectors.summingLong(Order::sales))
+            );
+
+        Label yearLabel = new Label("Year: ");
         ComboBox<String> yearComboBox = new ComboBox<String>();
-        autoFillCombBox(yearComboBox, uniqueYears);
+        autoFillComboBox(yearComboBox, salesPerYear.keySet());
         Button yearSearchBtn = new Button("Search");
         yearSearchBtn.getStyleClass().add(".button");
         Label yearOutput = new Label();
-        yearSearchBtn.setOnAction(e-> {
-            String year = yearComboBox.getEditor().getText();
-            if (year == null || year.isEmpty()) {
-                yearOutput.setText("Empty search bar.");
-            }else {
-                boolean yearExists = uniqueYears.stream()
-                .anyMatch(date -> year.equals(date.substring(date.length() - 4)));
-                if (yearExists) {
-                    int ordersInYear = (int) orders.stream()
-                    .filter(order -> year.equals(order.shipOrder().orderDate().substring(year.length())))
-                    .count();
-                    yearOutput.setText("Orders in " + year + ": " + ordersInYear);
-                    System.out.println("Orders in " + year + ": " + ordersInYear);
-                } else {
-                    System.out.println("Year not found.");
-                    yearOutput.setText("Year not found.");
-                }
-            }
-        });
+        handleButtonClick(salesPerYear, yearSearchBtn, yearComboBox, yearOutput, "Sales");
 
-        //-------------------------------Search by state for total Orders and customers--------------------
+        //====================================================================================
+        //-------------------------------TOTAL CUSTOMERS PER STATE----------------------------
+        //====================================================================================
 
-        Set<String> uniqueStates = new HashSet<>();
-        for (Order order : orders) {
-            uniqueStates.add(order.location().state());
-        }
+        Map<String, Integer> customersPerState = orders.stream()
+        .collect(Collectors.groupingBy(order -> 
+            order.location().state(),
+            Collectors.mapping(order -> 
+                order.customer().customerId(), 
+                Collectors.collectingAndThen(
+                    Collectors.counting(),
+                    Long::intValue)
+                ))
+            );
+
 
         Label stateLabel=new Label("State:"); 
         ComboBox<String> stateComboBox = new ComboBox<String>();
-        autoFillCombBox(stateComboBox, uniqueStates);
+        autoFillComboBox(stateComboBox, customersPerState.keySet());
         Button stateSearchBtn = new Button("Search");
         stateSearchBtn.getStyleClass().add(".button");
         Label stateOutput = new Label();
+        handleButtonClick(customersPerState, stateSearchBtn, stateComboBox, stateOutput, "Customers");
 
-        stateSearchBtn.setOnAction(e-> {
-            String state = stateComboBox.getEditor().getText();
-            if (state == null || state.isEmpty()) {
-                stateOutput.setText("Empty search bar.");
-            }else {
-                boolean stateExists = uniqueStates.stream()
-                .anyMatch(location -> state.equalsIgnoreCase(location));
-                if (stateExists) {
-                    int ordersPerState = (int) orders.stream()
-                    .filter(order -> state.equalsIgnoreCase(order.location().state()))
-                    .count();
-                    long customersInState = orders.stream()
-                    .filter(order -> state.equals(order.location().state()))
-                    .map(Order::customer)
-                    .map(Customer::customerId)
-                    .distinct()
-                    .count();
-                    stateOutput.setText(toProperCase(state) + "{Orders=" + ordersPerState + ", Customers=" + customersInState + "}");
-                    System.out.println(toProperCase(state) + "{Orders=" + ordersPerState + ", Customers=" + customersInState + "}");
-                } else {
-                    System.out.println("State not found.");
-                    stateOutput.setText("State not found.");
-                }
-            }
-        });
+        //====================================================================================
+        //----------------------------------TOTAL SALES PER REGION----------------------------
+        //====================================================================================
 
-        //--------------------------Sales per Region-------------------
-        /////////////////////////////////////////////////////////////////////Use Collectors for other methods
         Map<String, Long> salesPerRegion = orders.stream()
-        .collect(Collectors.groupingBy(order -> order.location().region(), Collectors.summingLong(Order::sales)));
-        salesPerRegion.forEach((region, sales) -> System.out.println(region + " Sales: " + sales));
+        .collect(Collectors.groupingBy(order -> 
+            order.location().region(), 
+            Collectors.summingLong(Order::sales))
+            );
+        //salesPerRegion.forEach((region, sales) -> System.out.println("Sales in " + region + ": " + sales));
 
-        //--------------------------Total Average Sales-------------------------
-        Button salesBtn = new Button("Average Sales");
+        Label regionLabel=new Label("Region:"); 
+        ComboBox<String> regionComboBox = new ComboBox<String>();
+        autoFillComboBox(regionComboBox, salesPerRegion.keySet());
+        Button regionSearchBtn = new Button("Search");
+        regionSearchBtn.getStyleClass().add(".button");
+        Label regionOutput = new Label();
+        handleButtonClick(salesPerRegion, regionSearchBtn, regionComboBox, regionOutput, "Sales");
+
+
+        //====================================================================================
+        //----------------------------------TOTAL AVERAGE SALES-------------------------------
+        //====================================================================================
+        Button salesBtn = new Button("Avg. Sales");
         salesBtn.getStyleClass().add(".button");
+        Label salesLabel = new Label();
 
         salesBtn.setOnAction(e -> {
             long totalSales = orders.stream().mapToLong(Order::sales).sum();
-            //System.out.println("Total Sales: " + totalSales);
             double averageSales = (double) totalSales / orders.size();
             System.out.println("Total Average Sales: " + averageSales);
+            salesLabel.setText(numberFormat.format(averageSales));
         });
 
         ///////////////////////////////////////////////////////////mess around with other layouts
         GridPane root = new GridPane();
-        root.setMinSize(400, 200);
+        root.setMinSize(500, 200);
         root.setPadding(new Insets(10, 10, 10, 10)); 
         root.setVgap(5); 
         root.setHgap(5);       
         root.setAlignment(Pos.CENTER); 
 
-        root.add(stateLabel, 0, 0);
-        root.add(stateComboBox, 1, 0);
-        root.add(stateSearchBtn, 2, 0);
-        root.add(stateOutput, 1, 1);
-        root.add(salesBtn, 1, 2);
-        root.add(customerLabel, 0, 3);
-        root.add(nameComboBox, 1, 3);
-        root.add(customerSearchBtn, 2, 3);
-        root.add(customerOutput, 1, 4);
-        root.add(yearLabel, 0, 5);
-        root.add(yearComboBox, 1, 5);
-        root.add(yearSearchBtn, 2, 5);
-        root.add(yearOutput, 1, 6);
-        root.add(tableHeading, 1, 7);
-        root.add(table, 0, 8, 3, 10);
+        root.add(segmentLabel, 0, 0);
+        root.add(segmentComboBox, 1, 0);
+        root.add(segmentSearchBtn, 2, 0);
+        root.add(segmentOutput, 3, 0);
+
+        root.add(stateLabel, 0, 1);
+        root.add(stateComboBox, 1, 1);
+        root.add(stateSearchBtn, 2, 1);
+        root.add(stateOutput, 3, 1);
+
+        root.add(regionLabel, 0, 2);
+        root.add(regionComboBox, 1, 2);
+        root.add(regionSearchBtn, 2, 2);
+        root.add(regionOutput, 3, 2);
+
+        root.add(yearLabel, 0, 3);
+        root.add(yearComboBox, 1, 3);
+        root.add(yearSearchBtn, 2, 3);
+        root.add(yearOutput, 3, 3);
+
+        root.add(salesBtn, 2, 4);
+        root.add(salesLabel, 3, 4);
+        
+        root.add(customerLabel, 0, 5);
+        root.add(nameComboBox, 1, 5);
+        root.add(customerSearchBtn, 2, 5);
+        root.add(customerOutput, 3, 5);
+
+        root.add(tableHeading, 1, 6);
+        root.add(table, 0, 7, 4, 10);
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add("stylesheet.css");
@@ -269,7 +276,7 @@ public class App extends Application{
     }
 
 
-    public void autoFillCombBox(ComboBox<String> cb, Collection<String> list) {
+    public void autoFillComboBox(ComboBox<String> cb, Collection<String> list) {
         cb.setEditable(true);
         ObservableList<String> items = FXCollections.observableArrayList(list);
                                                                             //visible 
@@ -292,6 +299,23 @@ public class App extends Application{
             });
         });
         cb.setItems(filteredItems);
+    }
+
+
+    public <T extends Number> void handleButtonClick(Map<String, T> map, Button button, ComboBox<String> cb, Label outputLabel, String item) {
+        button.setOnAction(e-> {
+            String input = cb.getEditor().getText();
+            if (input == null || input.isEmpty()) {
+                outputLabel.setText("Empty search bar.");
+            }   else if(map.containsKey(input)){
+                outputLabel.setText(item + " in " + input + ": " + numberFormat.format(map.get(input)));
+                System.out.println(item + " in " + input + ": " + numberFormat.format(map.get(input)));
+            } else {
+                System.out.println(item + " not found in \"" + input + "\".");
+                outputLabel.setText(item + " not found in \"" + input + "\".");
+            }
+            /////////////////////////////////////////////////////////////CHECK IF INPUT IS WRONG TYPE
+        });
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
