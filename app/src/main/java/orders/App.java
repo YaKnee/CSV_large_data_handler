@@ -107,27 +107,22 @@ public class App extends Application{
         customerSearchBtn.getStyleClass().add(".button");
         Label customerOutput = new Label();
         customerSearchBtn.setOnAction(e-> {
-            String name = toProperCase(nameComboBox.getEditor().getText());
+            String name = nameComboBox.getEditor().getText();
             if (name == null || name.isEmpty()) {
                 tableHeading.setText("Empty search bar.");
                 table.setVisible(false);
-            }else {
-                boolean nameExists = false;
-                for (String key : customerNameAndID.keySet()) {
-                    if (key.equalsIgnoreCase(name)) {
-                        nameExists = true;
-                        break;
-                    }
-                }
-                if (nameExists) {
-                    tableHeading.setText(toProperCase(name));
-                    ObservableList<Order> data = FXCollections.observableArrayList(customerOrders.get(customerNameAndID.get(toProperCase(name))));
+                return;
+            }
+            for (String key : customerNameAndID.keySet()) {
+                if (key.equalsIgnoreCase(name)) {
+                    tableHeading.setText(key);
+                    ObservableList<Order> data = FXCollections.observableArrayList(customerOrders.get(customerNameAndID.get(key)));
                     populateTable(table, data);
-                } else {
-                    tableHeading.setText("Customer not found.");
-                    table.setVisible(false);
+                    return;
                 }
             }
+            tableHeading.setText("Customer not found.");
+            table.setVisible(false);
         });
 
         //====================================================================================
@@ -345,14 +340,11 @@ public class App extends Application{
         TableColumn<Order, String> productIDCol = createColumn("ID", order -> order.product().id());
         TableColumn<Order, String> productSubCatCol = createColumn("Sub-Category", order -> order.product().subCategory());
 
-
         TableColumn<Order, String> logisticsCol = new TableColumn("Logistics");
         TableColumn<Order, String> salesCol = createColumn("Sales", Order::sales);
         TableColumn<Order, String> quantityCol = createColumn("Quantity", Order::quantity);
         TableColumn<Order, String> discountCol = createColumn("discount", Order::discount);
         TableColumn<Order, String> profitCol = createColumn("Profit", Order::profit);
-
-
 
         table.setItems(data);
 
@@ -380,23 +372,24 @@ public class App extends Application{
                 return new SimpleStringProperty("");
             }
         });
+        column.setResizable(false);
         return column;
     }
 
 
 
     //Maybe dont need this if I toLowerCase for search and then output the country/customer from set...
-    static String toProperCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return null;
-        }
-        String[] words = input.trim().split("\\s+");
-        StringBuilder sb = new StringBuilder();
-        for (String word : words) {
-            sb.append(Character.toUpperCase(word.charAt(0)))
-              .append(word.substring(1).toLowerCase())
-              .append(" ");
-        }
-        return sb.toString().trim();
-    }
+    // static String toProperCase(String input) {
+    //     if (input == null || input.isEmpty()) {
+    //         return null;
+    //     }
+    //     String[] words = input.trim().split("\\s+");
+    //     StringBuilder sb = new StringBuilder();
+    //     for (String word : words) {
+    //         sb.append(Character.toUpperCase(word.charAt(0)))
+    //           .append(word.substring(1).toLowerCase())
+    //           .append(" ");
+    //     }
+    //     return sb.toString().trim();
+    // }
 }  
