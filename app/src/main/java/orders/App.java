@@ -341,15 +341,31 @@ public class App extends Application{
         TableColumn<Order, String> stateCol = createColumn("State", order -> order.location().state());
         TableColumn<Order, String> regionCol = createColumn("Region",order -> order.location().region());
 
+        TableColumn<Order, String> productsCol = new TableColumn("Products");
+        TableColumn<Order, String> productIDCol = createColumn("ID", order -> order.product().id());
+        TableColumn<Order, String> productSubCatCol = createColumn("Sub-Category", order -> order.product().subCategory());
+
+
+        TableColumn<Order, String> logisticsCol = new TableColumn("Logistics");
+        TableColumn<Order, String> salesCol = createColumn("Sales", Order::sales);
+        TableColumn<Order, String> quantityCol = createColumn("Quantity", Order::quantity);
+        TableColumn<Order, String> discountCol = createColumn("discount", Order::discount);
+        TableColumn<Order, String> profitCol = createColumn("Profit", Order::profit);
+
+
+
         table.setItems(data);
 
         dateCol.getColumns().addAll(orderIDCol,orderDateCol,shipDateCol,shippingModeCol);
-        dateCol.setResizable(false);
         customerCol.getColumns().addAll(custNameCol,segmentCol);
-        customerCol.setResizable(false);
         locationCol.getColumns().addAll(cityCol, stateCol, regionCol);
-        locationCol.setResizable(false);
-        table.getColumns().addAll(countCol,dateCol, customerCol, locationCol);
+        productsCol.getColumns().addAll(productIDCol, productSubCatCol);
+        logisticsCol.getColumns().addAll(salesCol,quantityCol,discountCol,profitCol);
+
+        table.getColumns().addAll(countCol,dateCol, customerCol, locationCol, productsCol, logisticsCol);
+        for(TableColumn col : table.getColumns()){
+            col.setResizable(false);
+        }
         table.setEditable(false);
         table.setVisible(true);
     }
