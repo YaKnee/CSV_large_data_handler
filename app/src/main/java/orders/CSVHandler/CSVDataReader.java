@@ -8,9 +8,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import orders.OrderObjects.*;
 
-
-import orders.Order;
-
 public class CSVDataReader {
         public static ArrayList<Order> createOrders(String file) {
         ArrayList<Order> allOrders = new ArrayList<>();

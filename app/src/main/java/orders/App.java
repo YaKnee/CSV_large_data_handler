@@ -18,6 +18,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import orders.CSVHandler.*;
 import orders.GUI.*;
+import orders.OrderObjects.Order;
 
 
 //TO DO
@@ -120,7 +121,7 @@ public class App extends Application{
         Label segmentOutput = new Label();
         ComboBox<String> segmentComboBox = new ComboBox<String>();
         Components.autoFillComboBox(segmentComboBox, totalCustomersPerSegment.keySet());
-        Handlers.searchButtonClick(totalCustomersPerSegment, segmentSearchBtn, segmentComboBox, segmentOutput, "Customers");
+        Handlers.searchButtonClick(totalCustomersPerSegment, segmentSearchBtn, segmentComboBox, segmentOutput, "Customers", "segment");
 
 
         //====================================================================================
@@ -138,7 +139,7 @@ public class App extends Application{
         Label yearOutput = new Label();
         ComboBox<String> yearComboBox = new ComboBox<String>();
         Components.autoFillComboBox(yearComboBox, salesPerYear.keySet());
-        Handlers.searchButtonClick(salesPerYear, yearSearchBtn, yearComboBox, yearOutput, "Sales");
+        Handlers.searchButtonClick(salesPerYear, yearSearchBtn, yearComboBox, yearOutput, "Sales", "year");
 
         //====================================================================================
         //-------------------------------TOTAL CUSTOMERS PER STATE----------------------------
@@ -162,7 +163,7 @@ public class App extends Application{
         Label stateOutput = new Label();
         ComboBox<String> stateComboBox = new ComboBox<String>();
         Components.autoFillComboBox(stateComboBox, customersPerState.keySet());
-        Handlers.searchButtonClick(customersPerState, stateSearchBtn, stateComboBox, stateOutput, "Customers");
+        Handlers.searchButtonClick(customersPerState, stateSearchBtn, stateComboBox, stateOutput, "Customers", "state");
 
         //====================================================================================
         //----------------------------------TOTAL SALES PER REGION----------------------------
@@ -181,7 +182,7 @@ public class App extends Application{
         Label regionOutput = new Label();
         ComboBox<String> regionComboBox = new ComboBox<String>();
         Components.autoFillComboBox(regionComboBox, salesPerRegion.keySet());
-        Handlers.searchButtonClick(salesPerRegion, regionSearchBtn, regionComboBox, regionOutput, "Sales");
+        Handlers.searchButtonClick(salesPerRegion, regionSearchBtn, regionComboBox, regionOutput, "Sales", "region");
 
 
         //====================================================================================
