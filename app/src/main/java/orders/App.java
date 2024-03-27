@@ -1,33 +1,23 @@
 package orders;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
-import java.text.NumberFormat;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-import orders.CSVHandler.CSVDataReader;
+import orders.CSVHandler.*;
+import orders.GUI.*;
 
 
 //TO DO
@@ -48,12 +38,7 @@ import orders.CSVHandler.CSVDataReader;
  * This class represents a JavaFX application for managing SuperStore orders data.
  */
 public class App extends Application{
-
-    /**
-     * Formatter for numbers which adds commas for readability.
-     */
-    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
-
+    
     /**
      * Entry point for the JavaFX application.
      *
@@ -85,29 +70,11 @@ public class App extends Application{
         table.setVisible(false);
         Label tableHeading = new Label();
         Label customerLabel=new Label("Customer Name:"); 
-        ComboBox<String> nameComboBox = new ComboBox<String>();
-        autoFillComboBox(nameComboBox, customerNameAndID.keySet());
         Button customerSearchBtn = new Button("Search");
         customerSearchBtn.getStyleClass().add(".button");
-        Label customerOutput = new Label();
-        customerSearchBtn.setOnAction(e-> {
-            String name = nameComboBox.getEditor().getText();
-            if (name == null || name.isEmpty()) {
-                tableHeading.setText("Empty search bar.");
-                table.setVisible(false);
-                return;
-            }
-            for (String key : customerNameAndID.keySet()) {
-                if (key.equalsIgnoreCase(name)) {
-                    tableHeading.setText(key);
-                    ObservableList<Order> data = FXCollections.observableArrayList(customerOrders.get(customerNameAndID.get(key)));
-                    populateTable(table, data);
-                    return;
-                }
-            }
-            tableHeading.setText("Customer not found.");
-            table.setVisible(false);
-        });
+        ComboBox<String> nameComboBox = new ComboBox<String>();
+        Components.autoFillComboBox(nameComboBox, customerNameAndID.keySet());
+        Handlers.orderSummaryTableFromName(customerSearchBtn, nameComboBox, tableHeading, table, customerNameAndID, customerOrders);
 
         //====================================================================================
         //----------------------------------CUSTOMER WITH MOST SALES--------------------------
@@ -148,12 +115,12 @@ public class App extends Application{
         ));
 
         Label segmentLabel = new Label("Segment: ");
-        ComboBox<String> segmentComboBox = new ComboBox<String>();
-        autoFillComboBox(segmentComboBox, totalCustomersPerSegment.keySet());
         Button segmentSearchBtn = new Button("Search");
         segmentSearchBtn.getStyleClass().add(".button");
         Label segmentOutput = new Label();
-        handleButtonClick(totalCustomersPerSegment, segmentSearchBtn, segmentComboBox, segmentOutput, "Customers");
+        ComboBox<String> segmentComboBox = new ComboBox<String>();
+        Components.autoFillComboBox(segmentComboBox, totalCustomersPerSegment.keySet());
+        Handlers.searchButtonClick(totalCustomersPerSegment, segmentSearchBtn, segmentComboBox, segmentOutput, "Customers");
 
 
         //====================================================================================
@@ -166,12 +133,12 @@ public class App extends Application{
             );
 
         Label yearLabel = new Label("Year: ");
-        ComboBox<String> yearComboBox = new ComboBox<String>();
-        autoFillComboBox(yearComboBox, salesPerYear.keySet());
         Button yearSearchBtn = new Button("Search");
         yearSearchBtn.getStyleClass().add(".button");
         Label yearOutput = new Label();
-        handleButtonClick(salesPerYear, yearSearchBtn, yearComboBox, yearOutput, "Sales");
+        ComboBox<String> yearComboBox = new ComboBox<String>();
+        Components.autoFillComboBox(yearComboBox, salesPerYear.keySet());
+        Handlers.searchButtonClick(salesPerYear, yearSearchBtn, yearComboBox, yearOutput, "Sales");
 
         //====================================================================================
         //-------------------------------TOTAL CUSTOMERS PER STATE----------------------------
@@ -190,12 +157,12 @@ public class App extends Application{
 
 
         Label stateLabel=new Label("State:"); 
-        ComboBox<String> stateComboBox = new ComboBox<String>();
-        autoFillComboBox(stateComboBox, customersPerState.keySet());
         Button stateSearchBtn = new Button("Search");
         stateSearchBtn.getStyleClass().add(".button");
         Label stateOutput = new Label();
-        handleButtonClick(customersPerState, stateSearchBtn, stateComboBox, stateOutput, "Customers");
+        ComboBox<String> stateComboBox = new ComboBox<String>();
+        Components.autoFillComboBox(stateComboBox, customersPerState.keySet());
+        Handlers.searchButtonClick(customersPerState, stateSearchBtn, stateComboBox, stateOutput, "Customers");
 
         //====================================================================================
         //----------------------------------TOTAL SALES PER REGION----------------------------
@@ -209,12 +176,12 @@ public class App extends Application{
         //salesPerRegion.forEach((region, sales) -> System.out.println("Sales in " + region + ": " + sales));
 
         Label regionLabel=new Label("Region:"); 
-        ComboBox<String> regionComboBox = new ComboBox<String>();
-        autoFillComboBox(regionComboBox, salesPerRegion.keySet());
         Button regionSearchBtn = new Button("Search");
         regionSearchBtn.getStyleClass().add(".button");
         Label regionOutput = new Label();
-        handleButtonClick(salesPerRegion, regionSearchBtn, regionComboBox, regionOutput, "Sales");
+        ComboBox<String> regionComboBox = new ComboBox<String>();
+        Components.autoFillComboBox(regionComboBox, salesPerRegion.keySet());
+        Handlers.searchButtonClick(salesPerRegion, regionSearchBtn, regionComboBox, regionOutput, "Sales");
 
 
         //====================================================================================
@@ -223,13 +190,8 @@ public class App extends Application{
         Button salesBtn = new Button("Avg. Sales");
         salesBtn.getStyleClass().add(".button");
         Label salesLabel = new Label();
+        Handlers.averageButtonClick(salesBtn, orders, salesLabel);
 
-        salesBtn.setOnAction(e -> {
-            long totalSales = orders.stream().mapToLong(Order::sales).sum();
-            double averageSales = (double) totalSales / orders.size();
-            System.out.println("Total Average Sales: " + numberFormat.format(averageSales));
-            salesLabel.setText(numberFormat.format(averageSales));
-        });
 
         ///////////////////////////////////////////////////////////mess around with other layouts
         GridPane root = new GridPane();
@@ -265,7 +227,7 @@ public class App extends Application{
         root.add(customerLabel, 0, 5);
         root.add(nameComboBox, 1, 5);
         root.add(customerSearchBtn, 2, 5);
-        root.add(customerOutput, 3, 5);
+
 
         root.add(tableHeading, 1, 6);
         root.add(table, 0, 7, 4, 10);
@@ -277,128 +239,4 @@ public class App extends Application{
         primaryStage.setOnCloseRequest(event -> System.exit(0));
         primaryStage.show();
     }
-
-
-    public void autoFillComboBox(ComboBox<String> cb, Collection<String> list) {
-        cb.setEditable(true);
-        ObservableList<String> items = FXCollections.observableArrayList(list);
-                                                                            //visible 
-        FilteredList<String> filteredItems = new FilteredList<String>(items, v -> true);
-
-        cb.getEditor().textProperty().addListener((obs, originalVal, updatedVal) -> {
-            final TextField search = cb.getEditor();
-            final String selected = cb.getSelectionModel().getSelectedItem();
-
-            Platform.runLater(() -> {
-                if (selected == null || !selected.equals(search.getText())) {
-                    filteredItems.setPredicate(item -> {
-                        if (item.toUpperCase().startsWith(updatedVal.toUpperCase())) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    });
-                }
-            });
-        });
-        cb.setItems(filteredItems);
-    }
-
-
-    public <T extends Number> void handleButtonClick(Map<String, T> map, Button button, ComboBox<String> cb, Label outputLabel, String item) {
-        button.setOnAction(e-> {
-            String input = cb.getEditor().getText();
-            if (input == null || input.isEmpty()) {
-                outputLabel.setText("Empty search bar.");
-            }   else if(map.containsKey(input)){
-                outputLabel.setText(item + " in " + input + ": " + numberFormat.format(map.get(input)));
-                System.out.println(item + " in " + input + ": " + numberFormat.format(map.get(input)));
-            } else {
-                System.out.println(item + " not found in \"" + input + "\".");
-                outputLabel.setText(item + " not found in \"" + input + "\".");
-            }
-            /////////////////////////////////////////////////////////////CHECK IF INPUT IS WRONG TYPE
-        });
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void populateTable(TableView<Order> table, ObservableList<Order> data){
-        //use ___Col.setVisible(false/true) for checkboxs
-        table.getItems().clear();
-        table.getColumns().clear();
-        TableColumn<Order, String> countCol = createColumn("Row ID", Order::rowID);
-
-        TableColumn<Order, String> dateCol = new TableColumn("Order & Shipping");
-        TableColumn<Order, String> orderIDCol = createColumn("Order ID", order -> order.shipOrder().orderId());
-        TableColumn<Order, String> orderDateCol = createColumn("Order Date",  order -> order.shipOrder().orderDate());
-        TableColumn<Order, String> shipDateCol = createColumn("Shipping Date",  order -> order.shipOrder().shipDate());
-        TableColumn<Order, String> shippingModeCol = createColumn("Shipping Mode",  order -> order.shipOrder().shipMode());
-
-
-        TableColumn<Order, String> customerCol = new TableColumn("Customer");
-        TableColumn<Order, String> custNameCol = createColumn("Name",  order -> order.customer().name());
-        TableColumn<Order, String> custIdCol = createColumn("ID",  order -> order.customer().customerId());
-        TableColumn<Order, String> segmentCol = createColumn("Segment", order -> order.customer().segment());
-
-        TableColumn<Order, String> locationCol = new TableColumn("Location");
-        TableColumn<Order, String> cityCol = createColumn("City", order -> order.location().city());
-        TableColumn<Order, String> stateCol = createColumn("State", order -> order.location().state());
-        TableColumn<Order, String> regionCol = createColumn("Region",order -> order.location().region());
-
-        TableColumn<Order, String> productsCol = new TableColumn("Products");
-        TableColumn<Order, String> productIDCol = createColumn("ID", order -> order.product().id());
-        TableColumn<Order, String> productSubCatCol = createColumn("Sub-Category", order -> order.product().subCategory());
-
-        TableColumn<Order, String> logisticsCol = new TableColumn("Logistics");
-        TableColumn<Order, String> salesCol = createColumn("Sales", Order::sales);
-        TableColumn<Order, String> quantityCol = createColumn("Quantity", Order::quantity);
-        TableColumn<Order, String> discountCol = createColumn("discount", Order::discount);
-        TableColumn<Order, String> profitCol = createColumn("Profit", Order::profit);
-
-        table.setItems(data);
-
-        dateCol.getColumns().addAll(orderIDCol, orderDateCol, shipDateCol, shippingModeCol);
-        customerCol.getColumns().addAll(custNameCol, custIdCol, segmentCol);
-        locationCol.getColumns().addAll(cityCol, stateCol, regionCol);
-        productsCol.getColumns().addAll(productIDCol, productSubCatCol);
-        logisticsCol.getColumns().addAll(salesCol,quantityCol,discountCol,profitCol);
-
-        table.getColumns().addAll(countCol, dateCol, customerCol, locationCol, productsCol, logisticsCol);
-        for(TableColumn col : table.getColumns()){
-            col.setResizable(false);
-        }
-        table.setEditable(false);
-        table.setVisible(true);
-    }
-
-    private <S, T> TableColumn<S, String> createColumn(String title, Function<S, T> property) {
-        TableColumn<S, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(cellData -> {
-            T value = property.apply(cellData.getValue());
-            if (value != null) {
-                return new SimpleStringProperty(value.toString());
-            } else {
-                return new SimpleStringProperty("");
-            }
-        });
-        column.setResizable(false);
-        return column;
-    }
-
-
-
-    //Maybe dont need this if I toLowerCase for search and then output the country/customer from set...
-    // static String toProperCase(String input) {
-    //     if (input == null || input.isEmpty()) {
-    //         return null;
-    //     }
-    //     String[] words = input.trim().split("\\s+");
-    //     StringBuilder sb = new StringBuilder();
-    //     for (String word : words) {
-    //         sb.append(Character.toUpperCase(word.charAt(0)))
-    //           .append(word.substring(1).toLowerCase())
-    //           .append(" ");
-    //     }
-    //     return sb.toString().trim();
-    // }
 }
