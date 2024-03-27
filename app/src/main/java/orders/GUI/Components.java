@@ -1,6 +1,8 @@
 package orders.GUI;
 
-
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.function.Function;
 import java.util.Set;
 import java.util.TreeSet;
@@ -13,14 +15,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import orders.Order;
+import orders.OrderObjects.Order;
 
 public class Components {
 
     public static void autoFillComboBox(ComboBox<String> cb, Set<String> list) {
         TreeSet<String> sortedList = new TreeSet<>();
         sortedList.addAll(list);
-        //Set<String> sortedList = list.stream().sorted().collect(Collectors.toSet());
         ObservableList<String> items = FXCollections.observableArrayList(sortedList);
                                                                             //visible 
         FilteredList<String> filteredItems = new FilteredList<String>(items, v -> true);
@@ -105,7 +106,25 @@ public class Components {
                 return new SimpleStringProperty("");
             }
         });
-        column.setResizable(false);
+        //column sorting order
+        column.setComparator((s1, s2) -> {
+            try {
+                Integer n1 = Integer.parseInt(s1);
+                Integer n2 = Integer.parseInt(s2);
+                return n1.compareTo(n2);
+            } catch (NumberFormatException e) {
+                try {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d.M.yyyy");
+                    LocalDate date1 = LocalDate.parse(s1, formatter);
+                    LocalDate date2 = LocalDate.parse(s2, formatter);
+                    return date1.compareTo(date2);
+                } catch (DateTimeParseException err) {
+                    return s1.compareTo(s2);
+                }
+            }
+        });
+
+        // column.setResizable(false);
         return column;
     }
 }
