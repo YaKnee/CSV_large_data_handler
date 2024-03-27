@@ -30,7 +30,6 @@ import javafx.stage.Stage;
 import orders.CSVHandler.CSVDataReader;
 
 
-
 //TO DO
 ////Add Threading for Buttons
 ////Selector for States/Customers + Search bars         (done!)
@@ -45,10 +44,22 @@ import orders.CSVHandler.CSVDataReader;
 ////JavaDocs
 ////Make Pretty
 
+/**
+ * This class represents a JavaFX application for managing SuperStore orders data.
+ */
 public class App extends Application{
 
+    /**
+     * Formatter for numbers which adds commas for readability.
+     */
     NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
 
+    /**
+     * Entry point for the JavaFX application.
+     *
+     * @param primaryStage The primary stage for this application, onto which the application scene can be set.
+     * @throws Exception Throws an exception if an error occurs during application start-up.
+     */
     @Override
     public void start(Stage primaryStage) throws Exception {
         ArrayList<Order> orders = CSVDataReader.createOrders("data/SuperStoreOrders.csv");
@@ -61,38 +72,11 @@ public class App extends Application{
         for (Order order : orders) {
             String customerId = order.customer().customerId();
             String customerName = order.customer().name();
-            Set<Order> ordersForCustomer = customerOrders.computeIfAbsent(customerId, orderDetails -> new HashSet<>());
+            Set<Order> ordersForCustomer = customerOrders.computeIfAbsent(customerId, newCustomerId -> new HashSet<>());
             ordersForCustomer.add(order);
-            customerNameAndID.put(customerName, customerId);
-            int totalSales = order.sales();
-            customerTotalSales.put(customerId, customerTotalSales.getOrDefault(customerId, 0) + totalSales);
+            customerNameAndID.putIfAbsent(customerName, customerId);
+            customerTotalSales.merge(customerId, order.sales(), Integer::sum);
         }
-
-
-
-        //====================================================================================
-        //----------------------------------CUSTOMER WITH MOST SALES--------------------------
-        //====================================================================================
-        String customerWithMostSales = "";
-        int mostSales = 0;
-
-        for (Map.Entry<String, Integer> entry : customerTotalSales.entrySet()) {
-            if (entry.getValue() > mostSales) {
-                mostSales = entry.getValue();
-                customerWithMostSales = entry.getKey();
-            }
-        }
-
-        for (Order order : orders) {
-            if (order.customer().customerId().equals(customerWithMostSales)) {
-                System.out.print("Customer ID: " + order.customer().customerId());
-                System.out.print(", Name: " + order.customer().name());
-                System.out.print(", Segment: " + order.customer().segment());
-                System.out.println(", Sales: " + mostSales);
-                break; 
-            }
-        }
-       
 
         //====================================================================================
         //---------------------------FIND CUSTOMER AND DISPLAY ORDERS-------------------------
@@ -124,6 +108,30 @@ public class App extends Application{
             tableHeading.setText("Customer not found.");
             table.setVisible(false);
         });
+
+        //====================================================================================
+        //----------------------------------CUSTOMER WITH MOST SALES--------------------------
+        //====================================================================================
+        String customerWithMostSales = "";
+        int mostSales = 0;
+
+        for (Map.Entry<String, Integer> entry : customerTotalSales.entrySet()) {
+            if (entry.getValue() > mostSales) {
+                mostSales = entry.getValue();
+                customerWithMostSales = entry.getKey();
+            }
+        }
+
+        for (Order order : orders) {
+            if (order.customer().customerId().equals(customerWithMostSales)) {
+                System.out.print("Customer ID: " + order.customer().customerId());
+                System.out.print(", Name: " + order.customer().name());
+                System.out.print(", Segment: " + order.customer().segment());
+                System.out.println(", Sales: " + mostSales);
+                break; 
+            }
+        }
+
 
         //====================================================================================
         //--------------------------TOTAL CUSTOMERS PER SEGMENT-------------------------------
@@ -219,7 +227,7 @@ public class App extends Application{
         salesBtn.setOnAction(e -> {
             long totalSales = orders.stream().mapToLong(Order::sales).sum();
             double averageSales = (double) totalSales / orders.size();
-            System.out.println("Total Average Sales: " + averageSales);
+            System.out.println("Total Average Sales: " + numberFormat.format(averageSales));
             salesLabel.setText(numberFormat.format(averageSales));
         });
 
@@ -329,6 +337,7 @@ public class App extends Application{
 
         TableColumn<Order, String> customerCol = new TableColumn("Customer");
         TableColumn<Order, String> custNameCol = createColumn("Name",  order -> order.customer().name());
+        TableColumn<Order, String> custIdCol = createColumn("ID",  order -> order.customer().customerId());
         TableColumn<Order, String> segmentCol = createColumn("Segment", order -> order.customer().segment());
 
         TableColumn<Order, String> locationCol = new TableColumn("Location");
@@ -348,13 +357,13 @@ public class App extends Application{
 
         table.setItems(data);
 
-        dateCol.getColumns().addAll(orderIDCol,orderDateCol,shipDateCol,shippingModeCol);
-        customerCol.getColumns().addAll(custNameCol,segmentCol);
+        dateCol.getColumns().addAll(orderIDCol, orderDateCol, shipDateCol, shippingModeCol);
+        customerCol.getColumns().addAll(custNameCol, custIdCol, segmentCol);
         locationCol.getColumns().addAll(cityCol, stateCol, regionCol);
         productsCol.getColumns().addAll(productIDCol, productSubCatCol);
         logisticsCol.getColumns().addAll(salesCol,quantityCol,discountCol,profitCol);
 
-        table.getColumns().addAll(countCol,dateCol, customerCol, locationCol, productsCol, logisticsCol);
+        table.getColumns().addAll(countCol, dateCol, customerCol, locationCol, productsCol, logisticsCol);
         for(TableColumn col : table.getColumns()){
             col.setResizable(false);
         }
@@ -392,4 +401,4 @@ public class App extends Application{
     //     }
     //     return sb.toString().trim();
     // }
-}  
+}
