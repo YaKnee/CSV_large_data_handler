@@ -7,3 +7,13 @@
     -fx-stroke-width: 3;
     -fx-fill:black;
 }
+.root {
+    -fx-hgap: 5;
+    -fx-vgap: 5;
+    -fx-alignment: center;
+    -fx-position-shape: true;
+    -fx-border-insets: 10;
+    -fx-padding: 10;
+    -fx-min-width: 500;
+    -fx-min-height: 500;
+}
