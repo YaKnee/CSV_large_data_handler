@@ -19,6 +19,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -49,9 +50,10 @@ import orders.OrderObjects.Order;
 public class App extends Application{
     
     private Stage stage;
-    private Scene avgScene;
-    private Scene orderSumScene;
-    private Scene menuScene;
+    // private Scene avgScene;
+    // private Scene orderSumScene;
+    // private Scene menuScene;
+    private Scene welcomeScene;
     private BarChart<String, ? extends Number> chart;
 
     /**
@@ -64,7 +66,7 @@ public class App extends Application{
     public void start(Stage primaryStage) throws Exception {
         try {
             stage = primaryStage;
-            ArrayList<Order> orders = CSVDataReader.createOrders("data/SuperStoreOrders.csv");
+            //ArrayList<Order> orders = CSVDataReader.createOrders("data/SuperStoreOrders.csv");
 
             //------------------------------------All orders for a customerId----------------------
         //     Map<String, Set<Order>> customerOrders = new HashMap<>();
@@ -235,13 +237,11 @@ public class App extends Application{
 
             // Scene scene = new Scene(root);
             // scene.getStylesheets().add("stylesheet.css");
-            menuScene = createMenuScene();
-            avgScene = createAveragesScene(orders);
-            orderSumScene = createCustomerSummaryScene(orders);
+            welcomeScene = createWelcomeScene();
 
             Image icon = new Image("icon.png");
             stage.getIcons().add(icon);
-            stage.setScene(menuScene);
+            stage.setScene(welcomeScene);
             stage.setTitle("SuperStore Data");
             stage.setOnCloseRequest(event -> System.exit(0));
             stage.show();
@@ -250,34 +250,75 @@ public class App extends Application{
         }
     }
 
-    private Scene createMenuScene() {
+    private Scene createWelcomeScene(){
+        Text welcome = new Text("Welcome!");
+        welcome.setStyle("-fx-font: 24 arial;");
+        Image image = new Image("files2.png");
+        ImageView imgView = new ImageView(image);
+        imgView.setFitWidth(200);
+        imgView.setFitHeight(200);
+        Text select = new Text("Please select the data file that you wish to view.");
+        String[] files = {"SuperStoreOrders.csv"};
+        ComboBox<String> fileBox = new ComboBox<>(FXCollections.observableArrayList(files));
+        Label errorLbl = new Label();
+        errorLbl.setStyle("-fx-text-fill: red");
+        Button continueBtn = new Button("Select");
+        continueBtn.setOnAction(e->{
+            if (fileBox.getSelectionModel().isEmpty()) {
+                errorLbl.setText("Please select a file.");
+            }else{
+                errorLbl.setText("");
+                createMenuScene(CSVDataReader.createOrders("data/" + fileBox.getValue().toString()));
+            }
+        });
+        Button exitBtn = new Button("Exit");
+        exitBtn.setOnAction(e -> System.exit(0));
+        GridPane root = new GridPane();
+        root.add(welcome, 0, 0);
+        root.add(imgView, 3, 0);
+        root.add(select, 0, 2);
+        root.add(fileBox, 3, 2);
+        root.add(errorLbl, 3, 3);
+        root.add(continueBtn, 4, 5);
+        root.add(exitBtn, 5, 5);
+        root.getStylesheets().add("stylesheet.css");
+        return new Scene(root);
+    }
+
+    private void createMenuScene(ArrayList<Order> orders) {
+        Button backBtn = new Button("Back");
+        backBtn.setOnAction(e -> changeScene(welcomeScene));
+
         Button custBtn = new Button("Totals");
+        custBtn.setStyle("-fx-background-color: red");
         Text custText = new Text("View of the total sales or customers on a property with graph for visualisation.");
         custBtn.setOnAction(e -> changeScene(null));
 
         Button avgBtn = new Button("Averages");
-        avgBtn.setOnAction(e -> changeScene(avgScene));
+        avgBtn.setOnAction(e -> createAveragesScene(orders));
         Text avgText = new Text("Find the averages of sales or customers on a property with graph for visualisation.");
 
         Button ordersBtn = new Button("Orders Summary");
-        ordersBtn.setOnAction(e -> changeScene(orderSumScene));
+        ordersBtn.setOnAction(e -> createCustomerSummaryScene(orders));
         Text orderText = new Text("View the summary of orders of a selected customer in table format.");
 
         GridPane root = new GridPane();
-        root.add(custText, 0, 0);
-        root.add(custBtn, 1, 0);
-        root.add(avgText, 0, 1);
-        root.add(avgBtn, 1, 1);
-        root.add(orderText, 0, 2);
-        root.add(ordersBtn, 1, 2);
+        root.add(backBtn, 0, 0);
+        root.add(custText, 1, 3);
+        root.add(custBtn, 2, 3);
+        root.add(avgText, 1, 4);
+        root.add(avgBtn, 2, 4);
+        root.add(orderText, 1, 5);
+        root.add(ordersBtn, 2, 5);
         root.getStylesheets().add("stylesheet.css");
         root.setMinSize(600, 600);
-        return new Scene(root);
+        stage.setScene(new Scene(root));
+        //return new Scene(root);
     }
 
-    private Scene createCustomerSummaryScene(ArrayList<Order> orders) {
+    private void createCustomerSummaryScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
-        backBtn.setOnAction(e -> changeScene(menuScene));
+        backBtn.setOnAction(e -> createMenuScene(orders));
 
         //------------------------------------All orders for a customerId----------------------
         Map<String, Set<Order>> customerOrders = new HashMap<>();
@@ -313,12 +354,13 @@ public class App extends Application{
         root.add(table, 0, 3, 10, 10);
         root.getStylesheets().add("stylesheet.css");
         root.setMinSize(600, 600);
-        return new Scene(root);
+        stage.setScene(new Scene(root));
+        //return new Scene(root);
     }
 
-    private Scene createAveragesScene(ArrayList<Order> orders) {
+    private void createAveragesScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
-        backBtn.setOnAction(e -> changeScene(menuScene));
+        backBtn.setOnAction(e -> createMenuScene(orders));
 
         Text pText = new Text("Select the category for searching: ");
         String[] parentTxt = {"Customers", "Sales"};
@@ -353,7 +395,7 @@ public class App extends Application{
          }); 
          root.setMinSize(600, 600);
          root.getStylesheets().add("stylesheet.css");
-        return new Scene(root);
+         stage.setScene(new Scene(root));
     }
 
     private void changeScene(Scene scene) {
@@ -376,7 +418,4 @@ public class App extends Application{
                     Long::intValue
                 ))));
     }
-
-    
 }
-
