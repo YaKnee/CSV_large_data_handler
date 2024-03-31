@@ -260,15 +260,17 @@ public class App extends Application{
         Text select = new Text("Please select the data file that you wish to view.");
         String[] files = {"SuperStoreOrders.csv"};
         ComboBox<String> fileBox = new ComboBox<>(FXCollections.observableArrayList(files));
-        Label errorLbl = new Label();
+        Label errorLbl = new Label("Please select a file.");
         errorLbl.setStyle("-fx-text-fill: red");
+        errorLbl.setVisible(false);
         Button continueBtn = new Button("Select");
         continueBtn.setOnAction(e->{
             if (fileBox.getSelectionModel().isEmpty()) {
-                errorLbl.setText("Please select a file.");
+                errorLbl.setVisible(true);
             }else{
-                errorLbl.setText("");
-                createMenuScene(CSVDataReader.createOrders("data/" + fileBox.getValue().toString()));
+                errorLbl.setVisible(false);
+                ArrayList<Order> orders = CSVDataReader.createOrders("data/" + fileBox.getValue().toString());
+                createMenuScene(orders);
             }
         });
         Button exitBtn = new Button("Exit");
@@ -287,12 +289,16 @@ public class App extends Application{
 
     private void createMenuScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
+
         backBtn.setOnAction(e -> changeScene(welcomeScene));
 
         Button custBtn = new Button("Totals");
         custBtn.setStyle("-fx-background-color: red");
         Text custText = new Text("View of the total sales or customers on a property with graph for visualisation.");
-        custBtn.setOnAction(e -> changeScene(null));
+        Label eLabel = new Label("Scene not yet implemented.");
+        eLabel.setStyle("-fx-text-fill: red");
+        eLabel.setVisible(false);
+        custBtn.setOnAction(e -> eLabel.setVisible(true));
 
         Button avgBtn = new Button("Averages");
         avgBtn.setOnAction(e -> createAveragesScene(orders));
@@ -310,6 +316,7 @@ public class App extends Application{
         root.add(avgBtn, 2, 4);
         root.add(orderText, 1, 5);
         root.add(ordersBtn, 2, 5);
+        root.add(eLabel, 1, 7);
         root.getStylesheets().add("stylesheet.css");
         root.setMinSize(600, 600);
         stage.setScene(new Scene(root));
