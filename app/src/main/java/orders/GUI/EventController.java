@@ -2,15 +2,19 @@ package orders.GUI;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.BarChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import orders.App;
 import orders.OrderObjects.Order;
 
 
@@ -80,5 +84,40 @@ public class EventController {
             header.setText("Customer not found.");
             table.setVisible(false);
         });
+    }
+
+    public static BarChart<String, Number> updateChart(String parent, String child, ArrayList<Order> orders) {
+        Map<String, ? extends Number> dataMap;
+        switch (child) {
+            case "City":
+                dataMap = (parent.equals("Customers")) 
+                    ? App.generateCustomersMap(orders, order -> order.location().city()) 
+                    : App.generateSalesMap(orders, order -> order.location().city());
+                break;
+            case "State":
+                dataMap = (parent.equals("Customers")) 
+                    ? App.generateCustomersMap(orders, order -> order.location().state()) 
+                    : App.generateSalesMap(orders, order -> order.location().state());
+                break;
+            case "Region":
+                dataMap = (parent.equals("Customers")) 
+                    ? App.generateCustomersMap(orders, order -> order.location().region()) 
+                    : App.generateSalesMap(orders, order -> order.location().region());
+                break;
+            case "Segment":
+                dataMap = (parent.equals("Customers")) 
+                    ? App.generateCustomersMap(orders, order -> order.customer().segment()) 
+                    : App.generateSalesMap(orders, order -> order.customer().segment());
+                break;
+            case "Year":
+                dataMap = (parent.equals("Customers")) 
+                    ? App.generateCustomersMap(orders, order -> order.shipOrder().orderDate().substring(order.shipOrder().orderDate().length() - 4)) 
+                    : App.generateSalesMap(orders, order -> order.shipOrder().orderDate().substring(order.shipOrder().orderDate().length() - 4));
+                break;
+            default:
+                dataMap = new HashMap<>();
+                break;
+        }
+        return Components.createChart(dataMap, parent, child);
     }
 }

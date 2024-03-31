@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.function.Function;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import javafx.application.Platform;
@@ -11,13 +12,26 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import orders.OrderObjects.Order;
 
+import java.util.Locale;
+import java.text.NumberFormat;
+
+
 public class Components {
+
+    private final static NumberFormat numberFormat =
+    NumberFormat.getNumberInstance(Locale.US);
 
     public static void autoFillComboBox(ComboBox<String> cb, Set<String> list) {
         TreeSet<String> sortedList = new TreeSet<>();
@@ -126,5 +140,33 @@ public class Components {
 
         // column.setResizable(false);
         return column;
+    }
+
+    public static BarChart<String, Number> createChart(Map<String, ? extends Number> map, String parent, String child) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel(child);
+        yAxis.setLabel(parent);
+
+        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        chart.setTitle(parent + " per " + child);
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+        map.forEach((ch, p) -> {
+            series.getData().add(new XYChart.Data<>(ch, p));
+        });
+
+        chart.getData().add(series);
+
+        for (XYChart.Data<String, Number> dataPoint : series.getData()) {
+            Tooltip.install(dataPoint.getNode(), new Tooltip(
+                dataPoint.getXValue().toString() + ": " + numberFormat.format(dataPoint.getYValue())));
+        }
+
+        chart.setBarGap(0);
+        chart.setLegendVisible(false);
+
+        return chart;
     }
 }
