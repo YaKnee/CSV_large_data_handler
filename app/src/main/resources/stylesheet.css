@@ -10,7 +10,7 @@
 .root {
     -fx-hgap: 5;
     -fx-vgap: 5;
-    -fx-alignment: center;
+    /* -fx-alignment: center; */
     -fx-position-shape: true;
     -fx-border-insets: 10;
     -fx-padding: 10;
