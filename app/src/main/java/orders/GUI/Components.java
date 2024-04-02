@@ -164,15 +164,15 @@ public class Components {
             series2.getData().add(new XYChart.Data<>(ch, average));
         });
 
-        chart.getData().addAll(series1, series2);
+        chart.getData().addAll(series2, series1);
 
         for (XYChart.Data<String, Number> dataPoint : series1.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
                 dataPoint.getXValue().toString() + ": " + numberFormat.format(dataPoint.getYValue())));
         }
         for (XYChart.Data<String, Number> dataPoint : series2.getData()) {
-            // Tooltip.install(dataPoint.getNode(), new Tooltip(
-            //     "Average: " + numberFormat.format(average)));
+            Tooltip.install(dataPoint.getNode(), new Tooltip(
+                "Average: " + numberFormat.format(average)));
             dataPoint.getNode().setStyle("-fx-background-color: transparent;");
         }
         //tooltips for whole line except points so can access series1 when they are close
