@@ -45,7 +45,7 @@ javafx {
 application {
     // Define the main class for the application.
     // mainClass = "orders.App"
-    mainClass.set("orders.Main")
+    mainClass.set("orders.App")
 }
 
 tasks.named<Test>("test") {
