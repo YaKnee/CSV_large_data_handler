@@ -8,8 +8,21 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import orders.OrderObjects.*;
 
+
+/**
+ * A utility class for reading and parsing data into objects from a CSV file.
+ */
+
 public class CSVDataReader {
-        public static ArrayList<Order> createOrders(String file) {
+
+    /**
+     * Creates a list of Order objects from a CSV file.
+     * 
+     * @param file Path to the CSV file
+     * @return List of Order objects
+     * @throws Exception If there is an error reading file or parsing data
+     */
+    public static ArrayList<Order> createOrders(String file) {
         ArrayList<Order> allOrders = new ArrayList<>();
         try (CSVReader csvReader = new CSVReaderBuilder(new FileReader(file))
                 .withSkipLines(1)
@@ -22,13 +35,10 @@ public class CSVDataReader {
                     ShippingOrder shipOrder = new ShippingOrder(order[1],order[2],order[3], order[4]);
                                                     //customerId, Name, Segment
                     Customer customer = new Customer(order[5], order[6], order[7]);
-
-                                                    //Country, state,     State,    Post Code,  Region
+                                                    //Country, City,     State,    Post Code,  Region
                     Location location = new Location(order[8], order[9], order[10], order[11], order[12]);
                                                 //productId, category, sub-cat,      name
                     Product product = new Product(order[13], order[14], order[15], order[16]);
-                    //Commas were randomly interpolated in the data that weren't shown in Excel,
-                    //so replace with blanks
                     int sales = replaceCommaAndParse(order[17], rowID);
                     int quantity = replaceCommaAndParse(order[18], rowID);
                     int discount = replaceCommaAndParse(order[19], rowID);
@@ -37,21 +47,35 @@ public class CSVDataReader {
                             product, sales, quantity, discount, profit);
                     allOrders.add(fullOrder);
                 } catch (NumberFormatException e) {
-                    System.err.println("Failed to parse data in Row ID: " + order[0]);
+                    System.err.println("Failed to parse data in Row ID: "
+                                        + order[0]);
                 }
             });
         } catch (Exception e) {
+            System.err.println("Failed to read the CSV file.");
             e.printStackTrace();
         }
         return allOrders;
     }
 
+    /**
+     * Replaces all commas in a string with empty space and then parse
+     * string as an integer.
+     * If the parsing is successful, the integer value is returned.
+     * If the parsing fails, an error message is printed and -69 is returned.
+     * 
+     * @param orderItem The string to be processed
+     * @param rowID The ID of the row that the string is from
+     * @return The integer value of the string after replacing commas,
+     * or -69 if parsing fails
+     */
     private static int replaceCommaAndParse(String orderItem, int rowID){
         try{
             return Integer.parseInt(orderItem.replace(",",""));
         }catch (NumberFormatException e){
-            System.err.println("Failed to parse string: " + orderItem + ", in row with id: " + rowID);
-            return 0;
+            System.err.println("Failed to parse string: " + orderItem
+                                + ", in row with id: " + rowID);
+            return -69;
         }
     }
 }
