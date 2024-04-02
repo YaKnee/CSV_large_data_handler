@@ -21,12 +21,12 @@ import orders.OrderObjects.Order;
 
 
 /**
- * Handles events for GUI components related to orders.
+ * Handles events for GUI components.
  */
 public class EventController {
 
     // /**
-    //  * NumberFormat instance configured to format numbers according to US locale.
+    //  * Number instance for US locale.
     //  */
     // private final static NumberFormat numberFormat =
     //     NumberFormat.getNumberInstance(Locale.US);

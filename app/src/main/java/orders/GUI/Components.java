@@ -3,7 +3,9 @@ package orders.GUI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.text.NumberFormat;
 import java.util.function.Function;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -23,15 +25,20 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import orders.OrderObjects.Order;
 
-import java.util.Locale;
-import java.text.NumberFormat;
-
-
+/**
+ * Class for custom GUI component creation.
+ */
 public class Components {
 
     private final static NumberFormat numberFormat =
     NumberFormat.getNumberInstance(Locale.US);
 
+    /**
+     * ComboBox that suggests inputs based on sorted item list.
+     *
+     * @param cb    ComboBox to fill.
+     * @param list  Set of items to populate the ComboBox.
+     */
     public static void autoFillComboBox(ComboBox<String> cb, Set<String> list) {
         TreeSet<String> sortedList = new TreeSet<>();
         sortedList.addAll(list);
@@ -59,6 +66,13 @@ public class Components {
         cb.setItems(filteredItems);
     }
 
+
+    /**
+     * Populates a TableView with data.
+     *
+     * @param table TableView to populate.
+     * @param data  Data to populate the TableView with.
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     static void populateTable(TableView<Order> table, ObservableList<Order> data){
         //use ___Col.setVisible(false/true) for checkboxs
@@ -109,6 +123,15 @@ public class Components {
         table.setVisible(true);
     }
 
+    /**
+     * Creates a new TableColumn and defines the cellValueFactory for it.
+     *
+     * @param <S> Type of the TableView row (e.g., Order)
+     * @param <T> Type of the property of the row to be displayed in the column
+     * @param title Title of the column
+     * @param property Function representing the property of the row
+     * @return A new TableColumn instance
+     */
     private static <S, T> TableColumn<S, String> createColumn(String title, Function<S, T> property) {
         TableColumn<S, String> column = new TableColumn<>(title);
         column.setCellValueFactory(cellData -> {
@@ -136,13 +159,21 @@ public class Components {
                 }
             }
         });
-
-        // column.setResizable(false);
         return column;
     }
 
+
+    /**
+     * Creates a LineChart based on data map.
+     *
+     * @param map     Data map.
+     * @param parent  Parent category.
+     * @param child   Child category.
+     * @return        Created LineChart.
+     */
     @SuppressWarnings("unchecked")
-    public static LineChart<String, Number> createChart(Map<String, ? extends Number> map, String parent, String child) {
+    public static LineChart<String, Number>createChart(
+            Map<String, ? extends Number> map, String parent, String child) {
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
         xAxis.setLabel(child);
@@ -168,15 +199,17 @@ public class Components {
 
         for (XYChart.Data<String, Number> dataPoint : series1.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
-                dataPoint.getXValue().toString() + ": " + numberFormat.format(dataPoint.getYValue())));
+                dataPoint.getXValue().toString() + ": "
+                + numberFormat.format(dataPoint.getYValue())));
         }
         for (XYChart.Data<String, Number> dataPoint : series2.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
                 "Average: " + numberFormat.format(average)));
             dataPoint.getNode().setStyle("-fx-background-color: transparent;");
         }
-        //tooltips for whole line except points so can access series1 when they are close
-        Tooltip.install(series2.getNode(), new Tooltip("Average: " + numberFormat.format(average)));
+        //tooltip for whole series
+        Tooltip.install(series2.getNode(), new Tooltip("Average: "
+        + numberFormat.format(average)));
         
         chart.setLegendVisible(true);
         EventController.handleChartZoom(chart);
