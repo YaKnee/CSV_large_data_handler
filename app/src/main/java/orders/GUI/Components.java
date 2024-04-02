@@ -13,7 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.BarChart;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
@@ -141,30 +141,45 @@ public class Components {
         return column;
     }
 
-    public static BarChart<String, Number> createChart(Map<String, ? extends Number> map, String parent, String child) {
+    @SuppressWarnings("unchecked")
+    public static LineChart<String, Number> createChart(Map<String, ? extends Number> map, String parent, String child) {
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
         xAxis.setLabel(child);
         yAxis.setLabel(parent);
 
-        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle(parent + " per " + child);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
+        series1.setName(parent);
+
+        long total = map.values().stream().mapToLong(Number::longValue).sum();
+        double average = total / map.size();
+        XYChart.Series<String, Number> series2 = new XYChart.Series<>();
+        series2.setName("Average");
 
         map.forEach((ch, p) -> {
-            series.getData().add(new XYChart.Data<>(ch, p));
+            series1.getData().add(new XYChart.Data<>(ch, p));
+            series2.getData().add(new XYChart.Data<>(ch, average));
         });
 
-        chart.getData().add(series);
+        chart.getData().addAll(series1, series2);
 
-        for (XYChart.Data<String, Number> dataPoint : series.getData()) {
+        for (XYChart.Data<String, Number> dataPoint : series1.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
                 dataPoint.getXValue().toString() + ": " + numberFormat.format(dataPoint.getYValue())));
         }
-
-        chart.setBarGap(0);
-        chart.setLegendVisible(false);
+        for (XYChart.Data<String, Number> dataPoint : series2.getData()) {
+            // Tooltip.install(dataPoint.getNode(), new Tooltip(
+            //     "Average: " + numberFormat.format(average)));
+            dataPoint.getNode().setStyle("-fx-background-color: transparent;");
+        }
+        //tooltips for whole line except points so can access series1 when they are close
+        Tooltip.install(series2.getNode(), new Tooltip("Average: " + numberFormat.format(average)));
+        
+        chart.setLegendVisible(true);
+        EventController.handleChartZoom(chart);
 
         return chart;
     }
