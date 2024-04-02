@@ -8,11 +8,17 @@ import java.util.Locale;
 import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.chart.BarChart;
+import javafx.event.EventHandler;
+// import javafx.scene.chart.AreaChart;
+// import javafx.scene.chart.BarChart;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import orders.App;
 import orders.OrderObjects.Order;
 
@@ -49,16 +55,17 @@ public class EventController {
         /////////////////////////////////////////////////////////////CHECK IF INPUT IS WRONG TYPE
         });
     }
-    public static void averageButton(Button btn, ArrayList<Order> orders,
-                                                                Label output) {
-        btn.setOnAction(e -> {
-            long totalSales = orders.stream().mapToLong(Order::sales).sum();
-            double averageSales = (double) totalSales / orders.size();
-            System.out.println("Total Average Sales: " +
-                numberFormat.format(averageSales));
-            output.setText(numberFormat.format(averageSales));
-        });
-    }
+    
+    // public static void averageButton(Button btn, ArrayList<Order> orders,
+    //                                                             Label output) {
+    //     btn.setOnAction(e -> {
+    //         long totalSales = orders.stream().mapToLong(Order::sales).sum();
+    //         double averageSales = (double) totalSales / orders.size();
+    //         System.out.println("Total Average Sales: " +
+    //             numberFormat.format(averageSales));
+    //         output.setText(numberFormat.format(averageSales));
+    //     });
+    // }
 
     public static void orderSummaryTableFromName(Button btn, 
             ComboBox<String> cb, Label header, TableView<Order> table, 
@@ -85,7 +92,7 @@ public class EventController {
         });
     }
 
-    public static BarChart<String, Number> updateChart(String parent, String child, ArrayList<Order> orders) {
+    public static LineChart<String, Number> updateChart(String parent, String child, ArrayList<Order> orders) {
         Map<String, ? extends Number> dataMap;
         switch (child) {
             case "City":
@@ -117,6 +124,27 @@ public class EventController {
                 dataMap = new HashMap<>();
                 break;
         }
+        
         return Components.createChart(dataMap, parent, child);
+    }
+
+    public static void handleChartZoom(LineChart<String, Number> chart) {
+        final double scalingFactor = 1.1;
+        chart.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                double scaleFactor = (event.getButton() == MouseButton.PRIMARY) ? scalingFactor : 1 / scalingFactor;
+                chart.setScaleX(chart.getScaleX() * scaleFactor);
+                chart.setScaleY(chart.getScaleY() * scaleFactor);
+                for (XYChart.Series<String, Number> series : chart.getData()) {
+                    series.getNode().setStyle("-fx-stroke-width:" + scaleFactor + "px");
+                    for (XYChart.Data<String, Number> dataPoint : series.getData()) {
+                        dataPoint.getNode().setScaleX(1 / chart.getScaleX());
+                        dataPoint.getNode().setScaleY(1 / chart.getScaleY());
+                    }
+                }
+                event.consume();
+            }
+        });
     }
 }
