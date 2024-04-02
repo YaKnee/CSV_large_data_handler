@@ -12,8 +12,7 @@ import javafx.collections.FXCollections;
 // import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-// import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.BarChart;
+import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -54,7 +53,7 @@ public class App extends Application{
     // private Scene orderSumScene;
     // private Scene menuScene;
     private Scene welcomeScene;
-    private BarChart<String, ? extends Number> chart;
+    private LineChart<String, Number> chart;
 
     /**
      * Entry point for the JavaFX application.
@@ -122,7 +121,7 @@ public class App extends Application{
         //     //--------------------------TOTAL CUSTOMERS PER SEGMENT-------------------------------
         //     //====================================================================================
         //     Map<String, Integer> totalCustomersPerSegment = orders.stream()
-        //     .collect(Collectors.groupingBy(order ->
+        //     .collect(Collectors.chartingBy(order ->
         //         order.customer().segment(),
         //         Collectors.mapping(order -> 
         //             order.customer().customerId(), 
@@ -157,7 +156,7 @@ public class App extends Application{
         //     //====================================================================================
     
         //     // Map<String, Integer> customersPerState = orders.stream()
-        //     // .collect(Collectors.groupingBy(order -> 
+        //     // .collect(Collectors.chartingBy(order -> 
         //     //     order.location().state(),
         //     //     Collectors.mapping(order -> 
         //     //         order.customer().customerId(), 
@@ -377,8 +376,8 @@ public class App extends Application{
         Text cText = new Text("Select the sub-category for searching: ");
         String[] childTxt = {"City", "State", "Region", "Segment", "Year"};
         ComboBox<String> childChoice = new ComboBox<>(FXCollections.observableArrayList(childTxt));
-        childChoice.getSelectionModel().selectFirst();
-        chart = EventController.updateChart("Customers", "City", orders);
+        childChoice.getSelectionModel().select(1);
+        chart = EventController.updateChart("Customers", "State", orders);
 
         VBox root = new VBox(5);
         // root.setMinWidth(500);
@@ -400,6 +399,7 @@ public class App extends Application{
             chart = EventController.updateChart(selectedParent, selectedChild, orders);
             root.getChildren().add(chart);
          }); 
+
          root.setMinSize(600, 600);
          root.getStylesheets().add("stylesheet.css");
          stage.setScene(new Scene(root));
