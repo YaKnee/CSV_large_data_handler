@@ -6,12 +6,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -19,6 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import orders.CustomerPerformance;
 import orders.CSVHandler.CSVDataReader;
 import orders.OrderObjects.Order;
 
@@ -76,14 +80,11 @@ public class Scenes {
     public void createMenuScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> stage.setScene(welcomeScene));
+        
 
-        Button custBtn = new Button("Totals");
-        custBtn.setStyle("-fx-background-color: red");
-        Text custText = new Text("View of the total sales or customers on a property with graph for visualisation.");
-        Label eLabel = new Label("Scene not yet implemented.");
-        eLabel.setStyle("-fx-text-fill: red");
-        eLabel.setVisible(false);
-        custBtn.setOnAction(e -> eLabel.setVisible(true));
+        Button custBtn = new Button("Performances");
+        Text custText = new Text("View of the performance of customers in sets of 10 based on a selected property.");
+        custBtn.setOnAction(e -> createPerformanceScene(orders));
 
         Button avgBtn = new Button("Averages");
         avgBtn.setOnAction(e -> createAveragesScene(orders));
@@ -101,11 +102,78 @@ public class Scenes {
         root.add(avgBtn, 2, 4);
         root.add(orderText, 1, 5);
         root.add(ordersBtn, 2, 5);
-        root.add(eLabel, 1, 7);
         root.getStylesheets().add("stylesheet.css");
         root.setMinSize(600, 600);
         stage.setScene(new Scene(root));
         // return new Scene(root);
+    }
+
+    @SuppressWarnings({ "unchecked", "deprecation" })
+    public void createPerformanceScene(ArrayList<Order> orders) {
+        Button backBtn = new Button("Back");
+        backBtn.setOnAction(e -> createMenuScene(orders));
+
+        Map<String, Set<Order>> customerOrders = new HashMap<>();
+
+        for (Order order : orders) {
+            String customerId = order.customer().customerId();
+            Set<Order> ordersForCustomer = customerOrders.computeIfAbsent(customerId, newCustomerId -> new HashSet<>());
+            ordersForCustomer.add(order);
+        }
+
+        TableView<CustomerPerformance> performanceTable = new TableView<>();
+        performanceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        
+        TableColumn<CustomerPerformance, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("name"));
+        TableColumn<CustomerPerformance, String> idCol =  new TableColumn<>("ID");
+        idCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("id"));
+        TableColumn<CustomerPerformance, String> ordersCol = new TableColumn<>("Orders");
+        ordersCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("orders"));
+        TableColumn<CustomerPerformance, String> salesCol =  new TableColumn<>("Sales");
+        salesCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("sales"));
+        TableColumn<CustomerPerformance, String> profitsCol = new TableColumn<>("Profits");
+        profitsCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("profits"));
+
+
+        performanceTable.getColumns().addAll(nameCol,idCol,ordersCol,salesCol,profitsCol);
+
+        ObservableList<CustomerPerformance> performanceList = FXCollections.observableArrayList();
+        for (Map.Entry<String, Set<Order>> entry : customerOrders.entrySet()) {
+            String customerId = entry.getKey();
+            Set<Order> ordersForCustomer = entry.getValue();
+            String name = "";
+            for (Order order : ordersForCustomer) {
+                name = order.customer().name();
+                break; 
+            }
+            int orderSum = entry.getValue().size();
+            long totalSales = ordersForCustomer.stream().mapToLong(Order::sales).sum();
+            long totalProfits = ordersForCustomer.stream().mapToLong(Order::profit).sum();
+
+            CustomerPerformance cp = new CustomerPerformance(name, customerId, orderSum, totalSales, totalProfits);
+            performanceList.add(cp);
+        }
+        for (TableColumn<CustomerPerformance, ?> column : performanceTable.getColumns()) {
+            column.setComparator((s1, s2) -> {
+                try {
+                    Integer n1 = Integer.parseInt((String) s1);
+                    Integer n2 = Integer.parseInt((String) s2);
+                    return n1.compareTo(n2);
+                } catch (NumberFormatException e) {
+                        return ((String) s1).compareTo((String) s2);
+
+                }
+            });
+        }
+
+        performanceTable.setItems(performanceList);
+     
+        GridPane root = new GridPane();
+        root.add(backBtn, 0, 0);
+        root.add(performanceTable, 1, 3);
+        root.getStylesheets().add("stylesheet.css");
+        stage.setScene(new Scene(root));
     }
 
     public void createAveragesScene(ArrayList<Order> orders) {
