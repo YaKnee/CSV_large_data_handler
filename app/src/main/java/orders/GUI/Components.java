@@ -3,6 +3,10 @@ package orders.GUI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.util.function.Function;
 import java.util.Locale;
@@ -19,10 +23,13 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import orders.OrderObjects.Order;
 
 /**
@@ -33,6 +40,24 @@ public class Components {
     private final static NumberFormat numberFormat =
     NumberFormat.getNumberInstance(Locale.US);
 
+
+    public static Hyperlink createGitLink() {
+        Hyperlink link = new Hyperlink();
+        Image git = new Image("github-mark.png");
+        ImageView view = new ImageView(git);
+        view.setFitHeight(30);
+        view.setFitWidth(30);
+        link.setGraphic(view);
+        link.setOnAction(event -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://github.com/se-5G00DL97/final-assignment-YaKnee"));
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
+        });
+        return link;
+    }
+    
     /**
      * ComboBox that suggests inputs based on sorted item list.
      *
@@ -74,7 +99,7 @@ public class Components {
      * @param data  Data to populate the TableView with.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static void populateTable(TableView<Order> table, ObservableList<Order> data){
+    static void populateSummaryTable(TableView<Order> table, ObservableList<Order> data){
         //use ___Col.setVisible(false/true) for checkboxs
         table.getItems().clear();
         table.getColumns().clear();
@@ -132,7 +157,7 @@ public class Components {
      * @param property Function representing the property of the row
      * @return A new TableColumn instance
      */
-    private static <S, T> TableColumn<S, String> createColumn(String title, Function<S, T> property) {
+    public static <S, T> TableColumn<S, String> createColumn(String title, Function<S, T> property) {
         TableColumn<S, String> column = new TableColumn<>(title);
         column.setCellValueFactory(cellData -> {
             T value = property.apply(cellData.getValue());

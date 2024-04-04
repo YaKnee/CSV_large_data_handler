@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -18,7 +18,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -36,7 +35,9 @@ public class Scenes {
         this.welcomeScene = createWelcomeScene();
     }
     
-    public Scene createWelcomeScene(){
+    public Scene createWelcomeScene() {
+        Hyperlink git = Components.createGitLink();
+
         Text welcome = new Text("Welcome!");
         welcome.setStyle("-fx-font: 24 arial;");
         Image image = new Image("files2.png");
@@ -65,13 +66,14 @@ public class Scenes {
         Button exitBtn = new Button("Exit");
         exitBtn.setOnAction(e -> System.exit(0));
         GridPane root = new GridPane();
-        root.add(welcome, 0, 0);
-        root.add(imgView, 3, 0);
-        root.add(select, 0, 2);
-        root.add(fileBox, 3, 2);
-        root.add(errorLbl, 3, 3);
-        root.add(continueBtn, 4, 5);
-        root.add(exitBtn, 5, 5);
+        root.add(git, 10, 0);
+        root.add(welcome, 1, 2);
+        root.add(imgView, 3, 2);
+        root.add(select, 1, 5);
+        root.add(fileBox, 3, 5);
+        root.add(errorLbl, 3, 6);
+        root.add(continueBtn, 9, 10);
+        root.add(exitBtn, 10, 10);
         root.getStylesheets().add("stylesheet.css");
         welcomeScene = new Scene(root);
         return welcomeScene;
@@ -80,10 +82,11 @@ public class Scenes {
     public void createMenuScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> stage.setScene(welcomeScene));
-        
+
+        Hyperlink git = Components.createGitLink();
 
         Button custBtn = new Button("Performances");
-        Text custText = new Text("View of the performance of customers in sets of 10 based on a selected property.");
+        Text custText = new Text("View the performance of customers.");
         custBtn.setOnAction(e -> createPerformanceScene(orders));
 
         Button avgBtn = new Button("Averages");
@@ -96,6 +99,7 @@ public class Scenes {
 
         GridPane root = new GridPane();
         root.add(backBtn, 0, 0);
+        root.add(git, 10, 0);
         root.add(custText, 1, 3);
         root.add(custBtn, 2, 3);
         root.add(avgText, 1, 4);
@@ -103,7 +107,6 @@ public class Scenes {
         root.add(orderText, 1, 5);
         root.add(ordersBtn, 2, 5);
         root.getStylesheets().add("stylesheet.css");
-        root.setMinSize(600, 600);
         stage.setScene(new Scene(root));
         // return new Scene(root);
     }
@@ -112,6 +115,11 @@ public class Scenes {
     public void createPerformanceScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> createMenuScene(orders));
+
+        Hyperlink git = Components.createGitLink();
+
+        Text descText = new Text("Click a column header to sort the table"
+        + " respective to that property.\nClick again to reverse the order.");
 
         Map<String, Set<Order>> customerOrders = new HashMap<>();
 
@@ -171,7 +179,9 @@ public class Scenes {
      
         GridPane root = new GridPane();
         root.add(backBtn, 0, 0);
-        root.add(performanceTable, 1, 3);
+        root.add(git, 10, 0);
+        root.add(descText, 1, 3);
+        root.add(performanceTable, 1, 5);
         root.getStylesheets().add("stylesheet.css");
         stage.setScene(new Scene(root));
     }
@@ -180,39 +190,45 @@ public class Scenes {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> createMenuScene(orders));
 
+        Hyperlink git = Components.createGitLink();
+
         Text pText = new Text("Select the category for searching: ");
         String[] parentTxt = {"Customers", "Sales"};
         ComboBox<String> parentChoice = new ComboBox<>(FXCollections.observableArrayList(parentTxt));
         parentChoice.getSelectionModel().selectFirst();
+        parentChoice.setPrefWidth(100);
 
         Text cText = new Text("Select the sub-category for searching: ");
         String[] childTxt = {"City", "State", "Region", "Segment", "Year"};
         ComboBox<String> childChoice = new ComboBox<>(FXCollections.observableArrayList(childTxt));
         childChoice.getSelectionModel().select(1);
+        childChoice.setPrefWidth(100);
+
         chart = EventController.createChartForCategory("Customers", "State", orders);
 
-        VBox root = new VBox(5);
-        // root.setMinWidth(500);
-        root.setPadding(new Insets(10,10,10,10));
-        root.getChildren().addAll(backBtn,pText, parentChoice, cText, childChoice, chart);
-        
+        GridPane root = new GridPane();
+        root.add(backBtn, 0, 0);
+        root.add(git, 5, 0);
+        root.add(pText, 1, 2);
+        root.add(parentChoice, 3, 2);
+        root.add(cText, 1, 3);
+        root.add(childChoice, 3, 3);
+        root.add(chart, 1, 4, 10, 10);
 
         parentChoice.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             String selectedParent = newValue;
             String selectedChild = childChoice.getValue();
             root.getChildren().remove(chart);
             chart = EventController.createChartForCategory(selectedParent, selectedChild, orders);
-            root.getChildren().add(chart);
+            root.add(chart, 1, 4, 10, 10);
          }); 
         childChoice.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             String selectedChild = newValue;
             String selectedParent = parentChoice.getValue();
             root.getChildren().remove(chart);
             chart = EventController.createChartForCategory(selectedParent, selectedChild, orders);
-            root.getChildren().add(chart);
+            root.add(chart, 1, 4, 10, 10);
          }); 
-
-         root.setMinSize(600, 600);
          root.getStylesheets().add("stylesheet.css");
 
          stage.setScene(new Scene(root));
@@ -249,7 +265,6 @@ public class Scenes {
         root.add(tableHeading, 1, 2);
         root.add(table, 0, 3, 10, 10);
         root.getStylesheets().add("stylesheet.css");
-        root.setMinSize(600, 600);
         stage.setScene(new Scene(root));
     }
 }
