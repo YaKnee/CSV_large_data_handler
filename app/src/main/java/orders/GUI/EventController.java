@@ -87,7 +87,7 @@ public class EventController {
                     ObservableList<Order> data =
                     FXCollections.observableArrayList(
                             orders.get(nameAndID.get(name)));
-                    Components.populateTable(table, data);
+                    Components.populateSummaryTable(table, data);
                     return;
                 }
             }
