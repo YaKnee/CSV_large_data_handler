@@ -14,6 +14,21 @@
     -fx-position-shape: true;
     -fx-border-insets: 10;
     -fx-padding: 10;
-    -fx-min-width: 500;
-    -fx-min-height: 500;
+    -fx-min-width: 600;
+    -fx-min-height: 600;
+}
+.axis{
+    -fx-gap-start-and-end: false;
+}
+.default-color0.chart-series-line { -fx-stroke: #01C4E7; }
+.default-color1.chart-series-line { -fx-stroke: #C501E2; } 
+.default-color0.chart-line-symbol { -fx-background-color: #01C4E7, #01C4E7; }
+.default-color1.chart-line-symbol { -fx-background-color: #C501E2, white; }
+
+
+.chart-line-symbol{
+    -fx-shape: "M0,0 L10,0 L10,10 L0,10 Z"; /*square*/
+}
+.average-data-point {
+    -fx-background-color: transparent !important;
 }
