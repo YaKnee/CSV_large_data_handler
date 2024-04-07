@@ -1,5 +1,6 @@
 package orders.GUI;
 
+// import com.github.javafx.chart.zooming.ZoomManager;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -9,6 +10,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -28,8 +32,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import orders.CustomerPerformance;
 import orders.OrderObjects.Order;
 
 /**
@@ -50,14 +56,75 @@ public class Components {
         link.setGraphic(view);
         link.setOnAction(event -> {
             try {
-                Desktop.getDesktop().browse(new URI("https://github.com/se-5G00DL97/final-assignment-YaKnee"));
+                Desktop.getDesktop().browse(new URI(
+                    "https://github.com/se-5G00DL97/final-assignment-YaKnee"));
             } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
+                e.printStackTrace(); /////////add failbox with link C+V
             }
         });
         return link;
     }
-    
+
+
+    @SuppressWarnings({ "unchecked", "deprecation" })
+    public static TableView<CustomerPerformance>  performanceTable(ArrayList<Order> orders) {
+        Map<String, Set<Order>> customerOrders = new HashMap<>();
+
+        for (Order order : orders) {
+            String customerId = order.customer().customerId();
+            Set<Order> ordersForCustomer = customerOrders.computeIfAbsent(customerId, newCustomerId -> new HashSet<>());
+            ordersForCustomer.add(order);
+        }
+
+        TableView<CustomerPerformance> performanceTable = new TableView<>();
+        performanceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        
+        TableColumn<CustomerPerformance, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("name"));
+        TableColumn<CustomerPerformance, String> idCol =  new TableColumn<>("ID");
+        idCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("id"));
+        TableColumn<CustomerPerformance, String> ordersCol = new TableColumn<>("Orders");
+        ordersCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("orders"));
+        TableColumn<CustomerPerformance, String> salesCol =  new TableColumn<>("Sales");
+        salesCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("sales"));
+        TableColumn<CustomerPerformance, String> profitsCol = new TableColumn<>("Profits");
+        profitsCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("profits"));
+
+
+        performanceTable.getColumns().addAll(nameCol,idCol,ordersCol,salesCol,profitsCol);
+
+        ObservableList<CustomerPerformance> performanceList = FXCollections.observableArrayList();
+        for (Map.Entry<String, Set<Order>> entry : customerOrders.entrySet()) {
+            String customerId = entry.getKey();
+            Set<Order> ordersForCustomer = entry.getValue();
+            String name = "";
+            for (Order order : ordersForCustomer) {
+                name = order.customer().name();
+                break; 
+            }
+            int orderSum = entry.getValue().size();
+            long totalSales = ordersForCustomer.stream().mapToLong(Order::sales).sum();
+            long totalProfits = ordersForCustomer.stream().mapToLong(Order::profit).sum();
+
+            CustomerPerformance cp = new CustomerPerformance(name, customerId, orderSum, totalSales, totalProfits);
+            performanceList.add(cp);
+        }
+        for (TableColumn<CustomerPerformance, ?> column : performanceTable.getColumns()) {
+            column.setComparator((s1, s2) -> {
+                try {
+                    Integer n1 = Integer.parseInt((String) s1);
+                    Integer n2 = Integer.parseInt((String) s2);
+                    return n1.compareTo(n2);
+                } catch (NumberFormatException e) {
+                        return ((String) s1).compareTo((String) s2);
+
+                }
+            });
+        }
+
+        performanceTable.setItems(performanceList);
+        return performanceTable;
+    }
     /**
      * ComboBox that suggests inputs based on sorted item list.
      *
@@ -67,18 +134,20 @@ public class Components {
     public static void autoFillComboBox(ComboBox<String> cb, Set<String> list) {
         TreeSet<String> sortedList = new TreeSet<>();
         sortedList.addAll(list);
-        ObservableList<String> items = FXCollections.observableArrayList(sortedList);
-                                                                            //visible 
-        FilteredList<String> filteredItems = new FilteredList<String>(items, v -> true);
 
-        cb.getEditor().textProperty().addListener((obs, originalVal, updatedVal) -> {
+        ObservableList<String> items =
+            FXCollections.observableArrayList(sortedList);
+        FilteredList<String> filteredItems =
+            new FilteredList<String>(items);
+
+        cb.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
             final TextField search = cb.getEditor();
             final String selected = cb.getSelectionModel().getSelectedItem();
 
             Platform.runLater(() -> {
                 if (selected == null || !selected.equals(search.getText())) {
                     filteredItems.setPredicate(item -> {
-                        if (item.toUpperCase().startsWith(updatedVal.toUpperCase())) {
+                        if (item.toUpperCase().startsWith(newVal.toUpperCase())) {
                             return true;
                         } else {
                             return false;
@@ -99,46 +168,97 @@ public class Components {
      * @param data  Data to populate the TableView with.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static void populateSummaryTable(TableView<Order> table, ObservableList<Order> data){
-        //use ___Col.setVisible(false/true) for checkboxs
+    static void populateSummaryTable(TableView<Order> table,
+                                     ObservableList<Order> data){
         table.getItems().clear();
         table.getColumns().clear();
-        TableColumn<Order, String> countCol = createColumn("Row ID", Order::rowID);
 
-        TableColumn<Order, String> dateCol = new TableColumn("Order & Shipping");
-        TableColumn<Order, String> orderIDCol = createColumn("Order ID", order -> order.shipOrder().orderId());
-        TableColumn<Order, String> orderDateCol = createColumn("Order Date",  order -> order.shipOrder().orderDate());
-        TableColumn<Order, String> shipDateCol = createColumn("Shipping Date",  order -> order.shipOrder().shipDate());
-        TableColumn<Order, String> shippingModeCol = createColumn("Shipping Mode",  order -> order.shipOrder().shipMode());
+        TableColumn<Order, String> countCol =
+                            createColumn("Row ID", Order::rowID);
 
+        TableColumn<Order, String> dateCol =
+                            new TableColumn("Order & Shipping");
+        TableColumn<Order, String> orderIDCol =
+                            createColumn("Order ID",
+                                order -> order.shipOrder().orderId());
+        TableColumn<Order, String> orderDateCol =
+                            createColumn("Order Date",
+                                order -> order.shipOrder().orderDate());
+        TableColumn<Order, String> shipDateCol =
+                            createColumn("Shipping Date",
+                                order -> order.shipOrder().shipDate());
+        TableColumn<Order, String> shippingModeCol =
+                            createColumn("Shipping Mode",
+                                order -> order.shipOrder().shipMode());
 
-        TableColumn<Order, String> customerCol = new TableColumn("Customer");
-        TableColumn<Order, String> custNameCol = createColumn("Name",  order -> order.customer().name());
-        TableColumn<Order, String> custIdCol = createColumn("ID",  order -> order.customer().customerId());
-        TableColumn<Order, String> segmentCol = createColumn("Segment", order -> order.customer().segment());
+        TableColumn<Order, String> customerCol =
+                            new TableColumn("Customer");
+        TableColumn<Order, String> custNameCol =
+                            createColumn("Name",
+                                order -> order.customer().name());
+        TableColumn<Order, String> custIdCol =
+                            createColumn("ID",
+                                order -> order.customer().customerId());
+        TableColumn<Order, String> segmentCol =
+                            createColumn("Segment",
+                                order -> order.customer().segment());
 
-        TableColumn<Order, String> locationCol = new TableColumn("Location");
-        TableColumn<Order, String> cityCol = createColumn("City", order -> order.location().city());
-        TableColumn<Order, String> stateCol = createColumn("State", order -> order.location().state());
-        TableColumn<Order, String> regionCol = createColumn("Region",order -> order.location().region());
+        TableColumn<Order, String> locationCol =
+                            new TableColumn("Location");
+        TableColumn<Order, String> cityCol =
+                            createColumn("City",
+                                order -> order.location().city());
+        TableColumn<Order, String> stateCol =
+                            createColumn("State",
+                                order -> order.location().state());
+        TableColumn<Order, String> postCodeCol =
+                            createColumn("Post Code",
+                                order -> order.location().postCode());
+        TableColumn<Order, String> regionCol =
+                            createColumn("Region",
+                                order -> order.location().region());
+        TableColumn<Order, String> countryCol =
+                            createColumn("Country",
+                                order -> order.location().country());
 
-        TableColumn<Order, String> productsCol = new TableColumn("Products");
-        TableColumn<Order, String> productIDCol = createColumn("ID", order -> order.product().id());
-        TableColumn<Order, String> productSubCatCol = createColumn("Sub-Category", order -> order.product().subCategory());
+        TableColumn<Order, String> productsCol =
+                            new TableColumn("Products");
+        TableColumn<Order, String> prodIDCol =
+                            createColumn("ID",
+                                order -> order.product().id());
+        TableColumn<Order, String> prodCatCol =
+                            createColumn("Category",
+                                order -> order.product().category());
+        TableColumn<Order, String> prodSubCatCol =
+                            createColumn("Sub-Category",
+                                order -> order.product().subCategory());
+        TableColumn<Order, String> prodNameCol =
+                            createColumn("Name",
+                                order -> order.product().productName());
 
-        TableColumn<Order, String> logisticsCol = new TableColumn("Logistics");
-        TableColumn<Order, String> salesCol = createColumn("Sales", Order::sales);
-        TableColumn<Order, String> quantityCol = createColumn("Quantity", Order::quantity);
-        TableColumn<Order, String> discountCol = createColumn("discount", Order::discount);
-        TableColumn<Order, String> profitCol = createColumn("Profit", Order::profit);
+        TableColumn<Order, String> logisticsCol =
+                            new TableColumn("Logistics");
+        TableColumn<Order, String> salesCol =
+                            createColumn("Sales", Order::sales);
+        TableColumn<Order, String> quantityCol =
+                            createColumn("Quantity", Order::quantity);
+        TableColumn<Order, String> discountCol =
+                            createColumn("Discount", Order::discount);
+        TableColumn<Order, String> profitCol =
+                            createColumn("Profit", Order::profit);
 
         table.setItems(data);
 
-        dateCol.getColumns().addAll(orderIDCol, orderDateCol, shipDateCol, shippingModeCol);
-        customerCol.getColumns().addAll(custNameCol, custIdCol, segmentCol);
-        locationCol.getColumns().addAll(cityCol, stateCol, regionCol);
-        productsCol.getColumns().addAll(productIDCol, productSubCatCol);
-        logisticsCol.getColumns().addAll(salesCol,quantityCol,discountCol,profitCol);
+        dateCol.getColumns()
+            .addAll(orderIDCol, orderDateCol, shipDateCol, shippingModeCol);
+        customerCol.getColumns()
+            .addAll(custNameCol, custIdCol, segmentCol);
+        locationCol.getColumns()
+            .addAll(cityCol, stateCol, postCodeCol, regionCol, countryCol);
+        productsCol.getColumns()
+            .addAll(prodIDCol, prodCatCol, prodSubCatCol, prodNameCol);
+        logisticsCol.getColumns()
+            .addAll(salesCol,quantityCol,discountCol,profitCol);
 
         table.getColumns().addAll(countCol, dateCol, customerCol, locationCol, productsCol, logisticsCol);
         for(TableColumn col : table.getColumns()){
@@ -157,7 +277,8 @@ public class Components {
      * @param property Function representing the property of the row
      * @return A new TableColumn instance
      */
-    public static <S, T> TableColumn<S, String> createColumn(String title, Function<S, T> property) {
+    public static <S, T> TableColumn<S, String> createColumn(String title,
+                                                      Function<S, T> property) {
         TableColumn<S, String> column = new TableColumn<>(title);
         column.setCellValueFactory(cellData -> {
             T value = property.apply(cellData.getValue());
@@ -175,7 +296,8 @@ public class Components {
                 return n1.compareTo(n2);
             } catch (NumberFormatException e) {
                 try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d.M.yyyy");
+                    DateTimeFormatter formatter
+                        = DateTimeFormatter.ofPattern("d.M.yyyy");
                     LocalDate date1 = LocalDate.parse(s1, formatter);
                     LocalDate date2 = LocalDate.parse(s2, formatter);
                     return date1.compareTo(date2);
@@ -203,6 +325,7 @@ public class Components {
         NumberAxis yAxis = new NumberAxis();
         xAxis.setLabel(child);
         yAxis.setLabel(parent);
+        yAxis.setForceZeroInRange(false);
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle(parent + " per " + child);
@@ -230,14 +353,15 @@ public class Components {
         for (XYChart.Data<String, Number> dataPoint : series2.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
                 "Average: " + numberFormat.format(average)));
-            dataPoint.getNode().setStyle("-fx-background-color: transparent;");
+            dataPoint.getNode().getStyleClass().add("average-data-point");
         }
         //tooltip for whole series
         Tooltip.install(series2.getNode(), new Tooltip("Average: "
         + numberFormat.format(average)));
         
         chart.setLegendVisible(true);
-        EventController.handleChartZoom(chart);
+
+        // EventController.handleChartZoom(chart, xAxis, yAxis);
 
         return chart;
     }
