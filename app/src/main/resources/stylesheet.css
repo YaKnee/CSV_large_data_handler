@@ -1,22 +1,36 @@
 /* https://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html */
 
-.button {
+/* .button {
     -fx-background-color: black; 
     -fx-text-fill: white; 
     -fx-stroke: blue;
     -fx-stroke-width: 3;
     -fx-fill:black;
+} */
+.grid {
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+    -fx-alignment: center; 
+    -fx-border-insets: 10;
+    -fx-padding: 10;
 }
 .root {
-    -fx-hgap: 5;
-    -fx-vgap: 5;
-    /* -fx-alignment: center; */
     -fx-position-shape: true;
     -fx-border-insets: 10;
     -fx-padding: 10;
     -fx-min-width: 600;
     -fx-min-height: 600;
 }
+.menu-text{
+    -fx-font-size: 25px;
+    -fx-max-width: 500;
+    /* -fx-text-alignment: center;  */
+}
+.menu-button {
+    -fx-min-width: 500;
+    -fx-font-size: 30px;
+}
+
 .axis{
     -fx-gap-start-and-end: false;
 }
@@ -27,7 +41,7 @@
 
 
 .chart-line-symbol{
-    -fx-shape: "M0,0 L10,0 L10,10 L0,10 Z"; /*square*/
+    -fx-background-radius: 0;
 }
 .average-data-point {
     -fx-background-color: transparent !important;

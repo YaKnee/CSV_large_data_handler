@@ -5,22 +5,27 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
 import orders.CustomerPerformance;
 import orders.CSVHandler.CSVDataReader;
 import orders.OrderObjects.Order;
@@ -37,21 +42,32 @@ public class Scenes {
     
     public Scene createWelcomeScene() {
         Hyperlink git = Components.createGitLink();
+        HBox topBox = new HBox(git);
+        topBox.setAlignment(Pos.TOP_RIGHT);
 
         Text welcome = new Text("Welcome!");
         welcome.setStyle("-fx-font: 24 arial;");
         Image image = new Image("files2.png");
         ImageView imgView = new ImageView(image);
-        imgView.setFitWidth(200);
-        imgView.setFitHeight(200);
+        imgView.setFitWidth(100);
+        imgView.setFitHeight(100);
         Text select = new Text("Please select the data file that you wish to view.");
         String[] files = {"SuperStoreOrders.csv"};
         ComboBox<String> fileBox = new ComboBox<>(FXCollections.observableArrayList(files));
         Label errorLbl = new Label("Please select a file.");
         errorLbl.setStyle("-fx-text-fill: red");
         errorLbl.setVisible(false);
-        Button continueBtn = new Button("Select");
-        continueBtn.setOnAction(e->{
+        GridPane grid = new GridPane();
+        grid.setHgap(5);
+        grid.add(welcome, 1, 2);
+        grid.add(imgView, 3, 2);
+        grid.add(select, 1, 5);
+        grid.add(fileBox, 3, 5);
+        grid.add(errorLbl, 3, 6);
+        grid.getStyleClass().add("grid");
+
+        Button selectFileButton = new Button("Select");
+        selectFileButton.setOnAction(e->{
             if (fileBox.getSelectionModel().isEmpty()) {
                 errorLbl.setVisible(true);
             }else if (fileBox.getValue().toString().equals("SuperStoreOrders.csv")) {
@@ -65,16 +81,16 @@ public class Scenes {
         });
         Button exitBtn = new Button("Exit");
         exitBtn.setOnAction(e -> System.exit(0));
-        GridPane root = new GridPane();
-        root.add(git, 10, 0);
-        root.add(welcome, 1, 2);
-        root.add(imgView, 3, 2);
-        root.add(select, 1, 5);
-        root.add(fileBox, 3, 5);
-        root.add(errorLbl, 3, 6);
-        root.add(continueBtn, 9, 10);
-        root.add(exitBtn, 10, 10);
+        HBox bottomBox = new HBox(selectFileButton, exitBtn);
+        bottomBox.setAlignment(Pos.BOTTOM_RIGHT);
+        bottomBox.setSpacing(10);
+
+        BorderPane root = new BorderPane();
+        root.setTop(topBox);
+        root.setCenter(grid);
+        root.setBottom(bottomBox);
         root.getStylesheets().add("stylesheet.css");
+
         welcomeScene = new Scene(root);
         return welcomeScene;
     }
@@ -82,152 +98,117 @@ public class Scenes {
     public void createMenuScene(ArrayList<Order> orders) {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> stage.setScene(welcomeScene));
-
         Hyperlink git = Components.createGitLink();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox topBox = new HBox(backBtn, spacer, git); 
+        topBox.setAlignment(Pos.CENTER);
+        topBox.setSpacing(10);
 
+        Text custText = new Text("Overall performance of customers");
+        custText.getStyleClass().add("menu-text");
         Button custBtn = new Button("Performances");
-        Text custText = new Text("View the performance of customers.");
+        custBtn.getStyleClass().add("menu-button");
         custBtn.setOnAction(e -> createPerformanceScene(orders));
+        VBox custBox = new VBox(custText, custBtn);
+        custBox.setAlignment(Pos.CENTER);
 
-        Button avgBtn = new Button("Averages");
-        avgBtn.setOnAction(e -> createAveragesScene(orders));
-        Text avgText = new Text("Find the averages of sales or customers on a property with graph for visualisation.");
+        Text totalText = new Text("Total sales or customers per property");
+        totalText.getStyleClass().add("menu-text");
+        Button totalBtn = new Button("Totals");
+        totalBtn.getStyleClass().add("menu-button");
+        totalBtn.setOnAction(e -> createAveragesScene(orders));
+        VBox totalBox = new VBox(totalText, totalBtn);
+        totalBox.setAlignment(Pos.CENTER);
+        
 
-        Button ordersBtn = new Button("Orders Summary");
-        ordersBtn.setOnAction(e -> createCustomerSummaryScene(orders));
-        Text orderText = new Text("View the summary of orders of a selected customer in table format.");
+        Text orderText = new Text("Orders summary for specific customer");
+        orderText.getStyleClass().add("menu-text");
+        Button orderBtn = new Button("Summary");
+        orderBtn.getStyleClass().add("menu-button");
+        orderBtn.setOnAction(e -> createCustomerSummaryScene(orders));
+        VBox orderBox = new VBox(orderText, orderBtn);
+        orderBox.setAlignment(Pos.CENTER);
 
-        GridPane root = new GridPane();
-        root.add(backBtn, 0, 0);
-        root.add(git, 10, 0);
-        root.add(custText, 1, 3);
-        root.add(custBtn, 2, 3);
-        root.add(avgText, 1, 4);
-        root.add(avgBtn, 2, 4);
-        root.add(orderText, 1, 5);
-        root.add(ordersBtn, 2, 5);
+        GridPane grid = new GridPane();
+        grid.getStyleClass().add("grid");
+        grid.add(custBox, 0, 0);
+        grid.add(totalBox, 0, 1);
+        grid.add(orderBox, 0, 2);
+        grid.setVgap(20);
+
+
+        BorderPane root = new BorderPane();
+        root.setTop(topBox);
+        root.setCenter(grid);
+        
         root.getStylesheets().add("stylesheet.css");
         stage.setScene(new Scene(root));
         // return new Scene(root);
     }
 
-    @SuppressWarnings({ "unchecked", "deprecation" })
     public void createPerformanceScene(ArrayList<Order> orders) {
-        Button backBtn = new Button("Back");
-        backBtn.setOnAction(e -> createMenuScene(orders));
-
-        Hyperlink git = Components.createGitLink();
 
         Text descText = new Text("Click a column header to sort the table"
         + " respective to that property.\nClick again to reverse the order.");
+        TableView<CustomerPerformance> performanceTable =
+                                        Components.performanceTable(orders);
 
-        Map<String, Set<Order>> customerOrders = new HashMap<>();
+        GridPane grid = new GridPane();
+        grid.add(descText, 1, 3);
+        grid.add(performanceTable, 1, 5);
+        grid.getStyleClass().add("grid");
 
-        for (Order order : orders) {
-            String customerId = order.customer().customerId();
-            Set<Order> ordersForCustomer = customerOrders.computeIfAbsent(customerId, newCustomerId -> new HashSet<>());
-            ordersForCustomer.add(order);
-        }
+        BorderPane root = new BorderPane();
+        backAndGit(orders, root);
+        root.setCenter(grid);
 
-        TableView<CustomerPerformance> performanceTable = new TableView<>();
-        performanceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        
-        TableColumn<CustomerPerformance, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("name"));
-        TableColumn<CustomerPerformance, String> idCol =  new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("id"));
-        TableColumn<CustomerPerformance, String> ordersCol = new TableColumn<>("Orders");
-        ordersCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("orders"));
-        TableColumn<CustomerPerformance, String> salesCol =  new TableColumn<>("Sales");
-        salesCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("sales"));
-        TableColumn<CustomerPerformance, String> profitsCol = new TableColumn<>("Profits");
-        profitsCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("profits"));
-
-
-        performanceTable.getColumns().addAll(nameCol,idCol,ordersCol,salesCol,profitsCol);
-
-        ObservableList<CustomerPerformance> performanceList = FXCollections.observableArrayList();
-        for (Map.Entry<String, Set<Order>> entry : customerOrders.entrySet()) {
-            String customerId = entry.getKey();
-            Set<Order> ordersForCustomer = entry.getValue();
-            String name = "";
-            for (Order order : ordersForCustomer) {
-                name = order.customer().name();
-                break; 
-            }
-            int orderSum = entry.getValue().size();
-            long totalSales = ordersForCustomer.stream().mapToLong(Order::sales).sum();
-            long totalProfits = ordersForCustomer.stream().mapToLong(Order::profit).sum();
-
-            CustomerPerformance cp = new CustomerPerformance(name, customerId, orderSum, totalSales, totalProfits);
-            performanceList.add(cp);
-        }
-        for (TableColumn<CustomerPerformance, ?> column : performanceTable.getColumns()) {
-            column.setComparator((s1, s2) -> {
-                try {
-                    Integer n1 = Integer.parseInt((String) s1);
-                    Integer n2 = Integer.parseInt((String) s2);
-                    return n1.compareTo(n2);
-                } catch (NumberFormatException e) {
-                        return ((String) s1).compareTo((String) s2);
-
-                }
-            });
-        }
-
-        performanceTable.setItems(performanceList);
-     
-        GridPane root = new GridPane();
-        root.add(backBtn, 0, 0);
-        root.add(git, 10, 0);
-        root.add(descText, 1, 3);
-        root.add(performanceTable, 1, 5);
         root.getStylesheets().add("stylesheet.css");
         stage.setScene(new Scene(root));
     }
 
     public void createAveragesScene(ArrayList<Order> orders) {
-        Button backBtn = new Button("Back");
-        backBtn.setOnAction(e -> createMenuScene(orders));
-
-        Hyperlink git = Components.createGitLink();
-
         Text pText = new Text("Select the category for searching: ");
         String[] parentTxt = {"Customers", "Sales"};
-        ComboBox<String> parentChoice = new ComboBox<>(FXCollections.observableArrayList(parentTxt));
+        ComboBox<String> parentChoice =
+                new ComboBox<>(FXCollections.observableArrayList(parentTxt));
         parentChoice.getSelectionModel().selectFirst();
         parentChoice.setPrefWidth(100);
 
         Text cText = new Text("Select the sub-category for searching: ");
         String[] childTxt = {"City", "State", "Region", "Segment", "Year"};
-        ComboBox<String> childChoice = new ComboBox<>(FXCollections.observableArrayList(childTxt));
+        ComboBox<String> childChoice =
+                new ComboBox<>(FXCollections.observableArrayList(childTxt));
         childChoice.getSelectionModel().select(1);
         childChoice.setPrefWidth(100);
 
         chart = EventController.createChartForCategory("Customers", "State", orders);
 
-        GridPane root = new GridPane();
-        root.add(backBtn, 0, 0);
-        root.add(git, 5, 0);
-        root.add(pText, 1, 2);
-        root.add(parentChoice, 3, 2);
-        root.add(cText, 1, 3);
-        root.add(childChoice, 3, 3);
-        root.add(chart, 1, 4, 10, 10);
+        GridPane grid = new GridPane();
+        grid.add(pText, 1, 2);
+        grid.add(parentChoice, 3, 2);
+        grid.add(cText, 1, 3);
+        grid.add(childChoice, 3, 3);
+        grid.add(chart, 1, 4, 10, 10);
+        grid.getStyleClass().add("grid");
+
+        BorderPane root = new BorderPane();
+        backAndGit(orders, root);
+        root.setCenter(grid);
 
         parentChoice.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             String selectedParent = newValue;
             String selectedChild = childChoice.getValue();
-            root.getChildren().remove(chart);
+            grid.getChildren().remove(chart);
             chart = EventController.createChartForCategory(selectedParent, selectedChild, orders);
-            root.add(chart, 1, 4, 10, 10);
+            grid.add(chart, 1, 4, 10, 10);
          }); 
         childChoice.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             String selectedChild = newValue;
             String selectedParent = parentChoice.getValue();
-            root.getChildren().remove(chart);
+            grid.getChildren().remove(chart);
             chart = EventController.createChartForCategory(selectedParent, selectedChild, orders);
-            root.add(chart, 1, 4, 10, 10);
+            grid.add(chart, 1, 4, 10, 10);
          }); 
          root.getStylesheets().add("stylesheet.css");
 
@@ -235,9 +216,6 @@ public class Scenes {
     }
 
     public void createCustomerSummaryScene(ArrayList<Order> orders) {
-        Button backBtn = new Button("Back");
-        backBtn.setOnAction(e -> createMenuScene(orders));
-
         Map<String, Set<Order>> customerOrders = new HashMap<>();
         Map<String, String> customerNameAndID = new HashMap<>();
         for (Order order : orders) {
@@ -257,14 +235,30 @@ public class Scenes {
         Components.autoFillComboBox(nameComboBox, customerNameAndID.keySet());
         EventController.orderSummaryTableFromName(customerSearchBtn, nameComboBox, tableHeading, table, customerNameAndID, customerOrders);
 
-        GridPane root = new GridPane();
-        root.add(backBtn, 0, 0);
-        root.add(customerLabel, 0, 1);
-        root.add(nameComboBox, 1, 1);
-        root.add(customerSearchBtn, 2, 1);
-        root.add(tableHeading, 1, 2);
-        root.add(table, 0, 3, 10, 10);
+        GridPane grid = new GridPane();
+        grid.add(customerLabel, 0, 1);
+        grid.add(nameComboBox, 1, 1);
+        grid.add(customerSearchBtn, 2, 1);
+        grid.add(tableHeading, 1, 2);
+        grid.add(table, 0, 3, 10, 10);
+        grid.getStyleClass().add("grid");
+
+        BorderPane root = new BorderPane();
+        backAndGit(orders, root);
+        root.setCenter(grid);
         root.getStylesheets().add("stylesheet.css");
         stage.setScene(new Scene(root));
+    }
+
+    private void backAndGit(ArrayList<Order> orders, BorderPane bp) {
+        Button backBtn = new Button("Back");
+        backBtn.setOnAction(e -> createMenuScene(orders));
+        Hyperlink git = Components.createGitLink();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox topBox = new HBox(backBtn, spacer, git); 
+        topBox.setAlignment(Pos.CENTER);
+        topBox.setSpacing(10);
+        bp.setTop(topBox);
     }
 }
