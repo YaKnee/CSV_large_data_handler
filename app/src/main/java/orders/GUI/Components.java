@@ -47,6 +47,12 @@ public class Components {
     NumberFormat.getNumberInstance(Locale.US);
 
 
+    /**
+     * Creates a Hyperlink to the GitHub repository of a project.
+     *
+     * @return A Hyperlink with an image representing the GitHub logo, linked to
+     *         the repository URL.
+     */
     public static Hyperlink createGitLink() {
         Hyperlink link = new Hyperlink();
         Image git = new Image("github-mark.png");
@@ -65,35 +71,60 @@ public class Components {
         return link;
     }
 
-
+    /**
+     * Generates a table of customer performances based on a list of orders.
+     *
+     * @param orders ArrayList of Order objects representing orders to analyze.
+     * @return A TableView containing customer performance metrics including:
+     *         name, ID, total orders, total sales, and total profits.
+     *
+     * @SuppressWarnings({"unchecked", "deprecation"})
+     *      Used to suppress unchecked and deprecated warnings in the method.
+     */
     @SuppressWarnings({ "unchecked", "deprecation" })
-    public static TableView<CustomerPerformance>  performanceTable(ArrayList<Order> orders) {
+    public static TableView<CustomerPerformance>
+    performanceTable(ArrayList<Order> orders) {
         Map<String, Set<Order>> customerOrders = new HashMap<>();
 
         for (Order order : orders) {
             String customerId = order.customer().customerId();
-            Set<Order> ordersForCustomer = customerOrders.computeIfAbsent(customerId, newCustomerId -> new HashSet<>());
+            Set<Order> ordersForCustomer =
+                customerOrders.computeIfAbsent(
+                    customerId, newCustomerId -> new HashSet<>());
             ordersForCustomer.add(order);
         }
 
         TableView<CustomerPerformance> performanceTable = new TableView<>();
-        performanceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        performanceTable.setColumnResizePolicy(
+            TableView.CONSTRAINED_RESIZE_POLICY);
         
-        TableColumn<CustomerPerformance, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("name"));
-        TableColumn<CustomerPerformance, String> idCol =  new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("id"));
-        TableColumn<CustomerPerformance, String> ordersCol = new TableColumn<>("Orders");
-        ordersCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("orders"));
-        TableColumn<CustomerPerformance, String> salesCol =  new TableColumn<>("Sales");
-        salesCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("sales"));
-        TableColumn<CustomerPerformance, String> profitsCol = new TableColumn<>("Profits");
-        profitsCol.setCellValueFactory(new PropertyValueFactory<CustomerPerformance, String>("profits"));
+        TableColumn<CustomerPerformance, String> nameCol =
+            new TableColumn<>("Name");
+        nameCol.setCellValueFactory(
+            new PropertyValueFactory<CustomerPerformance, String>("name"));
+        TableColumn<CustomerPerformance, String> idCol =
+            new TableColumn<>("ID");
+        idCol.setCellValueFactory(
+            new PropertyValueFactory<CustomerPerformance, String>("id"));
+        TableColumn<CustomerPerformance, String> ordersCol =
+            new TableColumn<>("Orders");
+        ordersCol.setCellValueFactory(
+            new PropertyValueFactory<CustomerPerformance, String>("orders"));
+        TableColumn<CustomerPerformance, String> salesCol =
+            new TableColumn<>("Sales");
+        salesCol.setCellValueFactory(
+            new PropertyValueFactory<CustomerPerformance, String>("sales"));
+        TableColumn<CustomerPerformance, String> profitsCol =
+            new TableColumn<>("Profits");
+        profitsCol.setCellValueFactory(
+            new PropertyValueFactory<CustomerPerformance, String>("profits"));
 
 
-        performanceTable.getColumns().addAll(nameCol,idCol,ordersCol,salesCol,profitsCol);
+        performanceTable.getColumns().addAll(
+            nameCol,idCol,ordersCol,salesCol,profitsCol);
 
-        ObservableList<CustomerPerformance> performanceList = FXCollections.observableArrayList();
+        ObservableList<CustomerPerformance> performanceList =
+            FXCollections.observableArrayList();
         for (Map.Entry<String, Set<Order>> entry : customerOrders.entrySet()) {
             String customerId = entry.getKey();
             Set<Order> ordersForCustomer = entry.getValue();
@@ -103,13 +134,17 @@ public class Components {
                 break; 
             }
             int orderSum = entry.getValue().size();
-            long totalSales = ordersForCustomer.stream().mapToLong(Order::sales).sum();
-            long totalProfits = ordersForCustomer.stream().mapToLong(Order::profit).sum();
+            long totalSales =
+                ordersForCustomer.stream().mapToLong(Order::sales).sum();
+            long totalProfits =
+                ordersForCustomer.stream().mapToLong(Order::profit).sum();
 
-            CustomerPerformance cp = new CustomerPerformance(name, customerId, orderSum, totalSales, totalProfits);
+            CustomerPerformance cp =new CustomerPerformance(
+                name, customerId, orderSum, totalSales, totalProfits);
             performanceList.add(cp);
         }
-        for (TableColumn<CustomerPerformance, ?> column : performanceTable.getColumns()) {
+        for (TableColumn<CustomerPerformance, ?> column :
+                                                performanceTable.getColumns()) {
             column.setComparator((s1, s2) -> {
                 try {
                     Integer n1 = Integer.parseInt((String) s1);
@@ -121,10 +156,10 @@ public class Components {
                 }
             });
         }
-
         performanceTable.setItems(performanceList);
         return performanceTable;
     }
+
     /**
      * ComboBox that suggests inputs based on sorted item list.
      *
@@ -160,7 +195,6 @@ public class Components {
         cb.setItems(filteredItems);
     }
 
-
     /**
      * Populates a TableView with data.
      *
@@ -173,7 +207,7 @@ public class Components {
         table.getItems().clear();
         table.getColumns().clear();
 
-        TableColumn<Order, String> countCol =
+        TableColumn<Order, String> rowCol =
                             createColumn("Row ID", Order::rowID);
 
         TableColumn<Order, String> dateCol =
@@ -221,7 +255,7 @@ public class Components {
                             createColumn("Country",
                                 order -> order.location().country());
 
-        TableColumn<Order, String> productsCol =
+        TableColumn<Order, String> productCol =
                             new TableColumn("Products");
         TableColumn<Order, String> prodIDCol =
                             createColumn("ID",
@@ -236,7 +270,7 @@ public class Components {
                             createColumn("Name",
                                 order -> order.product().productName());
 
-        TableColumn<Order, String> logisticsCol =
+        TableColumn<Order, String> logisticCol =
                             new TableColumn("Logistics");
         TableColumn<Order, String> salesCol =
                             createColumn("Sales", Order::sales);
@@ -255,12 +289,13 @@ public class Components {
             .addAll(custNameCol, custIdCol, segmentCol);
         locationCol.getColumns()
             .addAll(cityCol, stateCol, postCodeCol, regionCol, countryCol);
-        productsCol.getColumns()
+        productCol.getColumns()
             .addAll(prodIDCol, prodCatCol, prodSubCatCol, prodNameCol);
-        logisticsCol.getColumns()
+        logisticCol.getColumns()
             .addAll(salesCol,quantityCol,discountCol,profitCol);
 
-        table.getColumns().addAll(countCol, dateCol, customerCol, locationCol, productsCol, logisticsCol);
+        table.getColumns().addAll(
+            rowCol, dateCol, customerCol, locationCol, productCol, logisticCol);
         for(TableColumn col : table.getColumns()){
             col.setResizable(false);
         }
