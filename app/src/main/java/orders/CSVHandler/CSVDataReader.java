@@ -1,6 +1,5 @@
 package orders.CSVHandler;
 
-
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
@@ -37,7 +36,7 @@ public class CSVDataReader {
                     Customer customer = new Customer(order[5], order[6], order[7]);
                                                     //Country, City,     State,    Post Code,  Region
                     Location location = new Location(order[8], order[9], order[10], order[11], order[12]);
-                                                //productId, category, sub-cat,      name
+                                                //productId, category, sub-category, name
                     Product product = new Product(order[13], order[14], order[15], order[16]);
                     int sales = replaceCommaAndParse(order[17], rowID);
                     int quantity = replaceCommaAndParse(order[18], rowID);
@@ -69,7 +68,7 @@ public class CSVDataReader {
      * @return The integer value of the string after replacing commas,
      * or -69 if parsing fails
      */
-    private static int replaceCommaAndParse(String orderItem, int rowID){
+    protected static int replaceCommaAndParse(String orderItem, int rowID){
         try{
             return Integer.parseInt(orderItem.replace(",",""));
         }catch (NumberFormatException e){
