@@ -5,18 +5,10 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import orders.GUI.*;
+import orders.GUI.Scenes;
 
 //TO DO
 ////Add Threading for Buttons
-////Selector for States/Customers + Search bars         (done!)
-////View summary of orders of customer                  (done!)
-////Customers per State                                 (done!)
-////Average Sales amounts of the orders                 (done?)
-////Customer with most sales                            (done!)
-////Count segments                                      (done!)
-////total sales per year                                (done!)
-////total sales per region                              (done!)
 ////****Testing****
 ////JavaDocs
 ////Make Pretty
@@ -24,15 +16,16 @@ import orders.GUI.*;
 
 public class App extends Application{
 
+
     /**
      * The main method of the application. It launches the JavaFX application.
-     * 
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         launch(args);
     }
-
+    
     /**
      * This method is called when the application is started. It sets up the
      * primary stage and initializes the main scene.
