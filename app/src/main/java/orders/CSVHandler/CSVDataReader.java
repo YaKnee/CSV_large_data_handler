@@ -57,6 +57,63 @@ public class CSVDataReader {
         return allOrders;
     }
 
+
+    public static ArrayList<Order> createReturns(String file) {
+        ArrayList<String> returnIDs = new ArrayList<>();
+        try (CSVReader csvReader = new CSVReaderBuilder(new FileReader(file))
+        .withSkipLines(1)
+        .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
+        .build()) {
+             csvReader.iterator().forEachRemaining(returnId -> {
+            try {
+                returnIDs.add(returnId[1]);
+            } catch (NumberFormatException e) {
+                System.err.println("Failed to parse data");
+            }
+         });
+        } catch (Exception e) {
+            System.err.println("Failed to read the Return CSV file.");
+            e.printStackTrace();
+        }
+
+        ArrayList<Order> allReturns = new ArrayList<>();
+        try (CSVReader csvReader = new CSVReaderBuilder(new FileReader("data/SuperStoreOrders.csv"))
+                .withSkipLines(1)
+                .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
+                .build()) {
+            csvReader.iterator().forEachRemaining(order -> {
+                try {
+                    if (returnIDs.contains(order[1])) {
+                        int rowID = Integer.parseInt(order[0]);
+                                                                //orderId, orderDate, shipDate, Ship Mode
+                        ShippingOrder shipOrder = new ShippingOrder(order[1],order[2],order[3], order[4]);
+                                                        //customerId, Name, Segment
+                        Customer customer = new Customer(order[5], order[6], order[7]);
+                                        //Country, City,     State,    Post Code,  Region
+                        Location location = new Location(order[8], order[9], order[10], order[11], order[12]);
+                                    //productId, category, sub-category, name
+                        Product product = new Product(order[13], order[14], order[15], order[16]);
+                        int sales = replaceCommaAndParse(order[17], rowID);
+                        int quantity = replaceCommaAndParse(order[18], rowID);
+                        int discount = replaceCommaAndParse(order[19], rowID);
+                        int profit = replaceCommaAndParse(order[20], rowID);
+                        Order fullOrder = new Order(rowID, shipOrder, customer, location,
+                        product, sales, quantity, discount, profit);
+                        allReturns.add(fullOrder);
+                    }
+
+                } catch (NumberFormatException e) {
+                    System.err.println("Failed to parse data in Row ID: "
+                                        + order[0]);
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("Failed to read the Order CSV file.");
+            e.printStackTrace();
+        }
+        return allReturns;
+    }
+
     /**
      * Replaces all commas in a string with empty space and then parse
      * string as an integer.

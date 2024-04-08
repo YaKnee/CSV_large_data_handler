@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
@@ -52,7 +53,7 @@ public class Scenes {
         imgView.setFitWidth(100);
         imgView.setFitHeight(100);
         Text select = new Text("Please select the data file that you wish to view.");
-        String[] files = {"SuperStoreOrders.csv"};
+        String[] files = {"SuperStoreOrders.csv", "SuperStoreReturns.csv"};
         ComboBox<String> fileBox = new ComboBox<>(FXCollections.observableArrayList(files));
         Label errorLbl = new Label("Please select a file.");
         errorLbl.setStyle("-fx-text-fill: red");
@@ -75,8 +76,9 @@ public class Scenes {
                 ArrayList<Order> orders = CSVDataReader.createOrders("data/" + fileBox.getValue().toString());
                 createMenuScene(orders);
             } else {
-                errorLbl.setText("Uuuuuummmm, yeah we ain't done that yet.");
-                errorLbl.setVisible(true);
+                errorLbl.setVisible(false);
+                ArrayList<Order> returns = CSVDataReader.createReturns("data/" + fileBox.getValue().toString());
+                createReturnsScene(returns);
             }
         });
         Button exitBtn = new Button("Exit");
@@ -145,6 +147,36 @@ public class Scenes {
         root.getStylesheets().add("stylesheet.css");
         stage.setScene(new Scene(root));
         // return new Scene(root);
+    }
+
+    public void createReturnsScene(ArrayList<Order> returns) {
+        Button backBtn = new Button("Back");
+        backBtn.setOnAction(e -> stage.setScene(welcomeScene));
+        Hyperlink git = Components.createGitLink();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox topBox = new HBox(backBtn, spacer, git); 
+        topBox.setAlignment(Pos.CENTER);
+        topBox.setSpacing(10);
+
+        Text returnText = new Text("Returned Orders");
+        returnText.setStyle("-fx-font-size: 25px");
+        TableView<Order> table = new TableView<>();
+        ObservableList<Order> data = FXCollections.observableArrayList(returns);
+        Components.populateSummaryTable(table, data);
+
+        GridPane grid = new GridPane();
+        grid.getStyleClass().add("grid");
+        grid.add(returnText, 0, 0);
+        grid.add(table, 0, 1);
+        grid.setVgap(10);
+
+        BorderPane root = new BorderPane();
+        root.setTop(topBox);
+        root.setCenter(grid);
+
+        root.getStylesheets().add("stylesheet.css");
+        stage.setScene(new Scene(root));
     }
 
     public void createPerformanceScene(ArrayList<Order> orders) {
