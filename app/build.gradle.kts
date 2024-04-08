@@ -21,13 +21,13 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation("com.opencsv:opencsv:4.1")
     implementation("org.openjfx:javafx:21")
+    testImplementation("org.testfx:testfx-junit5:4.0.18")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -45,7 +45,7 @@ javafx {
 application {
     // Define the main class for the application.
     // mainClass = "orders.App"
-    mainClass.set("orders.App")
+    mainClass.set("orders.Main")
 }
 
 tasks.named<Test>("test") {
