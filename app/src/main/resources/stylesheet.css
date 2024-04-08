@@ -1,12 +1,5 @@
 /* https://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html */
 
-/* .button {
-    -fx-background-color: black; 
-    -fx-text-fill: white; 
-    -fx-stroke: blue;
-    -fx-stroke-width: 3;
-    -fx-fill:black;
-} */
 .grid {
     -fx-hgap: 10;
     -fx-vgap: 10;
@@ -21,14 +14,28 @@
     -fx-min-width: 600;
     -fx-min-height: 600;
 }
+
+.table-view .scroll-bar:vertical .thumb ,
+.table-view .scroll-bar:horizontal .thumb {
+    -fx-background-color: #01c5e7ae;
+}
+
+.hbox, .vbox {
+    -fx-alignment: CENTER;
+    -fx-spacing: 10px;
+}
 .menu-text{
     -fx-font-size: 25px;
     -fx-max-width: 500;
-    /* -fx-text-alignment: center;  */
 }
 .menu-button {
     -fx-min-width: 500;
     -fx-font-size: 30px;
+}
+
+.column-style{
+    -fx-border-color: red;
+    -fx-border-width: 0 1px;
 }
 
 .axis{
@@ -38,7 +45,6 @@
 .default-color1.chart-series-line { -fx-stroke: #C501E2; } 
 .default-color0.chart-line-symbol { -fx-background-color: #01C4E7, #01C4E7; }
 .default-color1.chart-line-symbol { -fx-background-color: #C501E2, white; }
-
 
 .chart-line-symbol{
     -fx-background-radius: 0;
