@@ -106,6 +106,10 @@ public class Components {
             new TableColumn<>("ID");
         idCol.setCellValueFactory(
             new PropertyValueFactory<CustomerPerformance, String>("id"));
+        TableColumn<CustomerPerformance, String> segmentCol =
+            new TableColumn<>("Segment");
+        segmentCol.setCellValueFactory(
+            new PropertyValueFactory<CustomerPerformance, String>("segment"));
         TableColumn<CustomerPerformance, String> ordersCol =
             new TableColumn<>("Orders");
         ordersCol.setCellValueFactory(
@@ -121,7 +125,7 @@ public class Components {
 
 
         performanceTable.getColumns().addAll(
-            nameCol,idCol,ordersCol,salesCol,profitsCol);
+            nameCol, idCol, segmentCol, ordersCol, salesCol, profitsCol);
 
         ObservableList<CustomerPerformance> performanceList =
             FXCollections.observableArrayList();
@@ -129,8 +133,10 @@ public class Components {
             String customerId = entry.getKey();
             Set<Order> ordersForCustomer = entry.getValue();
             String name = "";
+            String segment = "";
             for (Order order : ordersForCustomer) {
                 name = order.customer().name();
+                segment = order.customer().segment();
                 break; 
             }
             int orderSum = entry.getValue().size();
@@ -140,7 +146,7 @@ public class Components {
                 ordersForCustomer.stream().mapToLong(Order::profit).sum();
 
             CustomerPerformance cp =new CustomerPerformance(
-                name, customerId, orderSum, totalSales, totalProfits);
+                name, customerId, segment, orderSum, totalSales, totalProfits);
             performanceList.add(cp);
         }
         for (TableColumn<CustomerPerformance, ?> column :
