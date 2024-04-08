@@ -184,32 +184,26 @@ public class Scenes {
 
         chart = EventController.createChartForCategory("Customers", "State", orders);
 
+        Text descText = new Text("Hover over data points to see their exact values.");
+
         GridPane grid = new GridPane();
-        grid.add(pText, 1, 2);
-        grid.add(parentChoice, 3, 2);
-        grid.add(cText, 1, 3);
-        grid.add(childChoice, 3, 3);
-        grid.add(chart, 1, 4, 10, 10);
+        grid.add(pText, 0, 2);
+        grid.add(parentChoice, 2, 2);
+        grid.add(cText, 0, 3);
+        grid.add(childChoice, 2, 3);
+        grid.add(chart, 0, 4, 2, 2);
+        grid.add(descText, 0, 6);
         grid.getStyleClass().add("grid");
 
         BorderPane root = new BorderPane();
         backAndGit(orders, root);
         root.setCenter(grid);
 
-        parentChoice.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            String selectedParent = newValue;
-            String selectedChild = childChoice.getValue();
-            grid.getChildren().remove(chart);
-            chart = EventController.createChartForCategory(selectedParent, selectedChild, orders);
-            grid.add(chart, 1, 4, 10, 10);
-         }); 
-        childChoice.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            String selectedChild = newValue;
-            String selectedParent = parentChoice.getValue();
-            grid.getChildren().remove(chart);
-            chart = EventController.createChartForCategory(selectedParent, selectedChild, orders);
-            grid.add(chart, 1, 4, 10, 10);
-         }); 
+        @SuppressWarnings("unchecked")
+        LineChart<String, Number>[] chartWrapper = new LineChart[]{chart};
+        EventController.totalComboChoice(parentChoice, childChoice, grid,
+                                            chartWrapper, orders);
+
          root.getStylesheets().add("stylesheet.css");
 
          stage.setScene(new Scene(root));
@@ -229,6 +223,7 @@ public class Scenes {
         TableView<Order> table = new TableView<>();
         table.setVisible(false);
         Label tableHeading = new Label();
+        tableHeading.setStyle("-fx-font-size: 25px;");
         Label customerLabel=new Label("Customer Name:"); 
         Button customerSearchBtn = new Button("Search");
         ComboBox<String> nameComboBox = new ComboBox<String>();

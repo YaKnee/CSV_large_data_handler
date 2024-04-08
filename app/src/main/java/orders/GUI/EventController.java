@@ -14,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.GridPane;
 import orders.OrderObjects.Order;
 
 /**
@@ -56,6 +57,23 @@ public class EventController {
             header.setText("Customer not found.");
             table.setVisible(false);
         });
+    }
+
+    public static void totalComboChoice(ComboBox<String> parent,
+    ComboBox<String> child, GridPane grid,
+    LineChart<String, Number>[] chartWrapper, ArrayList<Order> orders){
+        parent.setOnAction(e -> {
+            grid.getChildren().remove(chartWrapper[0]);
+            chartWrapper[0] = EventController.createChartForCategory(
+                parent.getValue(), child.getValue(), orders);
+            grid.add(chartWrapper[0], 0, 4, 2, 2);
+        }); 
+        child.setOnAction(e -> {
+            grid.getChildren().remove(chartWrapper[0]);
+            chartWrapper[0] = EventController.createChartForCategory(
+                parent.getValue(), child.getValue(), orders);
+            grid.add(chartWrapper[0], 0, 4, 2, 2);
+        }); 
     }
 
     /**
