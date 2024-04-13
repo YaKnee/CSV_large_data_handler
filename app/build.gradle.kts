@@ -27,7 +27,7 @@ dependencies {
     implementation(libs.guava)
     implementation("com.opencsv:opencsv:4.1")
     implementation("org.openjfx:javafx:21")
-    testImplementation("org.testfx:testfx-junit5:4.0.18")
+    // testImplementation("org.testfx:testfx-junit5:4.0.18")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
