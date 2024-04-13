@@ -9,18 +9,65 @@ import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+
 import orders.OrderObjects.Order;
 
 /**
- * Handles events for GUI components.
+ * Handles events for GUI s.
  */
 public class EventController {
+
+    private ArrayList<Order> orders;
+    private GridPane grid;
+    private LineChart<Number, Number> chart;
+    private TableView<Map.Entry<String, ? extends Number>> table;
+    private ComboBox<String> parentChoice;
+    private ComboBox<String> childChoice;
+    private ToggleGroup tg;
+    private RadioButton radioChart;
+    private HBox descBox;
+
+    /**
+     * Constructor to initialize EventController with given parameters.
+     * 
+     * @param orders       list of orders
+     * @param grid         grid pane
+     * @param chart        line chart
+     * @param totalsTable  table view
+     * @param parentChoice main category combo box 
+     * @param childChoice  sub-category combo box 
+     * @param tg           toggle group
+     * @param radioChart   radio button
+     * @param descBox     descriptive text for chart controls
+     */
+    public EventController(ArrayList<Order> orders, GridPane grid,
+    LineChart<Number, Number> chart, 
+    TableView<Map.Entry<String, ? extends Number>> totalsTable,
+    ComboBox<String> parentChoice, ComboBox<String> childChoice,
+    ToggleGroup tg, RadioButton radioChart, HBox descBox){
+        this.orders = orders;
+        this.grid = grid;
+        this.chart = chart;
+        this.table = totalsTable;
+        this.tg = tg;
+        this.radioChart = radioChart;
+        this.parentChoice = parentChoice;
+        this.childChoice = childChoice;
+        this.descBox = descBox;
+        addListeners();
+    }
 
     /**
      * Populates a TableView with order summary information based on the 
@@ -59,22 +106,63 @@ public class EventController {
         });
     }
 
-    public static void totalComboChoice(ComboBox<String> parent,
-    ComboBox<String> child, GridPane grid,
-    LineChart<String, Number>[] chartWrapper, ArrayList<Order> orders){
-        parent.setOnAction(e -> {
-            grid.getChildren().remove(chartWrapper[0]);
-            chartWrapper[0] = EventController.createChartForCategory(
-                parent.getValue(), child.getValue(), orders);
-            grid.add(chartWrapper[0], 0, 4, 2, 2);
-        }); 
-        child.setOnAction(e -> {
-            grid.getChildren().remove(chartWrapper[0]);
-            chartWrapper[0] = EventController.createChartForCategory(
-                parent.getValue(), child.getValue(), orders);
-            grid.add(chartWrapper[0], 0, 4, 2, 2);
-        }); 
+    /**
+     * Adds listeners to toggle group and combo boxes.
+     */
+    private void addListeners() {
+        tg.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle == radioChart) {
+                updateTotalChart();
+            } else {
+                updateTotalTable();
+            }
+        });
+        parentChoice.setOnAction(this::comboBoxListener);
+        childChoice.setOnAction(this::comboBoxListener);
     }
+
+    /**
+     * Listener method for combo box value change, dependant on togglegroup.
+     *
+     * @param event the action event
+     */
+    private void comboBoxListener(ActionEvent event) {
+        grid.getChildren().removeAll(chart, table);
+        if (tg.getSelectedToggle() == radioChart) {
+            updateTotalChart();
+        } else {
+            updateTotalTable();
+        }
+    }
+
+    /**
+     * Updates the total chart based on user input.
+     */
+    @SuppressWarnings("unchecked")
+    private void updateTotalChart() {
+        grid.getChildren().removeAll(chart, table, descBox);
+        chart = (LineChart<Number, Number>) decipherInputsForMap(
+            parentChoice.getValue(), childChoice.getValue(), orders, "Chart");
+        grid.add(descBox, 0, 1);
+        grid.add(chart, 0, 3);
+        GridPane.setHgrow(chart, Priority.ALWAYS);
+        GridPane.setVgrow(chart, Priority.ALWAYS);
+    }
+
+    /**
+     * Updates the total table based on user input.
+     */
+    @SuppressWarnings("unchecked")
+    private void updateTotalTable() {
+        grid.getChildren().removeAll(chart, table, descBox);
+        table = (TableView<Map.Entry<String, ? extends Number>>) 
+            decipherInputsForMap(parentChoice.getValue(),
+            childChoice.getValue(), orders,"Table");
+        grid.add(table, 0, 3);
+        GridPane.setHgrow(table, Priority.ALWAYS);
+        GridPane.setVgrow(table, Priority.ALWAYS);
+    }
+    
 
     /**
      * Generates a map of data based on the parent and child categories, and
@@ -85,9 +173,8 @@ public class EventController {
      * @param orders List of orders to generate the data from
      * @return A LineChart displaying data for given parent and child categories
      */
-    public static LineChart<String, Number>
-        createChartForCategory(String parent, String child,
-                                ArrayList<Order> orders) {
+    public static Node decipherInputsForMap(String parent, String child,
+                                ArrayList<Order> orders, String node) {
         final Map<String, ? extends Number> dataMap;
         switch (child) {
             case "City":
@@ -128,10 +215,16 @@ public class EventController {
                             order.shipOrder().orderDate().length() - 4));
                 break;
             default:
-                dataMap = new HashMap<>();
+                dataMap = new HashMap<>(); ////////////////////////HANDLE BETTER
                 break;
         }
-        return Components.createChart(dataMap, parent, child);
+        if(node.equalsIgnoreCase("chart")) {
+            return Components.createChart(dataMap, parent, child);
+        }
+        else if(node.equalsIgnoreCase("table")) {
+            return Components.createTotalsTable(dataMap, parent, child);
+        }
+        return null;
     }
 
     /**
