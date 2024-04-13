@@ -2,7 +2,8 @@ package orders;
 
 public class Main {
     /**
-     * The main method of the application. It launches the JavaFX application.
+     * The main method of the class.
+     * Used to by-pass JavaFx RunTime Components Missing error.
      *
      * @param args the command line arguments
      */

@@ -1,18 +1,10 @@
 package orders;
 
 import javafx.application.Application;
-// import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import orders.GUI.Scenes;
-
-//TO DO
-////Add Threading for Buttons
-////****Testing****
-////JavaDocs
-////Make Pretty
-
 
 public class App extends Application{
 
@@ -37,8 +29,6 @@ public class App extends Application{
     @Override
     public void start(Stage stage) throws Exception {
         try {
-            //  Parent root = FXMLLoader.load(getClass().getResource("/welcome.fxml"));
-            // scene.getStylesheets().add("stylesheet.css");
             Scenes scenes = new Scenes(stage);
             Scene welcomeScene = scenes.createWelcomeScene();
             Image icon = new Image("icon.png");
