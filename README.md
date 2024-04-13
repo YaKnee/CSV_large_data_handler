@@ -23,8 +23,8 @@ User and developer perspectives, known bugs, and self-evaluation: [YouTube](http
 
 | Feature | Your Points | Max |
 | :--- | :---: | :---: |
-| User is able to navigate in the UI.<br>UI is easy to use, follows common guidelines either in CLI or GUI app. | 19 | 20 |
-| App has excellent exception handling. | 7 | 10 |
+| User is able to navigate in the UI.<br>UI is easy to use, follows common guidelines either in CLI or GUI app. | 18 | 20 |
+| App has excellent exception handling. | 6 | 10 |
 | User is able to search for customers by name. | 10 | 10 |
 | User is able to select one of the customers (from search) and view a summary of all the orders made by the customer in a table view (either ascii or gui). | 20 | 20 |
 | User is able to show statistics from the dataset:<br><ul><li>What is the average sales amount of the orders? (10p)</li><li>Who is the best customer(highest total sales)? (10p)</li><li>The amount of customers per state? (10p)</li><li>How many customers per segment? (10p)</li><li>What is the total sales per year? (10p)</li><li>What is the total sales per region? (10p)</li></ul> | <br> <ul><li>10</li><li>10</li><li>10</li><li>10</li><li>10</li><li>10</li></ul> | 60 |
@@ -32,10 +32,10 @@ User and developer perspectives, known bugs, and self-evaluation: [YouTube](http
 | JavaDoc Comments. | 20 | 20 |
 | README.md | 10 | 10 |
 | GUI | 45 | 50 |
-| GUI: does not hang/suspend when handling large dataset. | 17 | 20 |
+| GUI: does not hang/suspend when handling large dataset. | 16 | 20 |
 | Checkstyle code quality. | 10 | 10 |
 | Screencast. | 10 | 10 |
 | Git commits. | 10 | 10 |
 | Proper releases. | 10 | 10 | 
 | **Bonus**: GUI: User is able to view graphical charts from the data. | 30 | 30 |
-| SUM | 294 | 320 |
+| SUM | 292 | 320 |
