@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import javafx.scene.control.Label;
 import orders.OrderObjects.*;
 
-
 /**
  * A utility class for reading and parsing data into objects from a CSV file.
  */
@@ -50,7 +49,8 @@ public class CSVDataReader {
             try {
                 returnIDs.add(returnId[1]);
             } catch (ArrayIndexOutOfBoundsException e) {
-                setErrorLabel(error, "Failed to parse data: index out of bounds.");
+                setErrorLabel(error,
+                    "Failed to parse data: index out of bounds.");
             }
          });
         } catch (IOException e) {
@@ -59,7 +59,8 @@ public class CSVDataReader {
         }
 
         ArrayList<Order> allReturns = new ArrayList<>();
-        try (CSVReader csvReader = createCSVReader("data/SuperStoreOrders.csv", error)) {
+        try (CSVReader csvReader =
+        createCSVReader("data/SuperStoreOrders.csv", error)) {
             csvReader.iterator().forEachRemaining(order -> {
                 try {
                     if (returnIDs.contains(order[1])) {
@@ -68,7 +69,8 @@ public class CSVDataReader {
                 } catch (NumberFormatException e) {
                     setErrorLabel(error, e.getMessage());
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    setErrorLabel(error, "Failed to parse data: index out of bounds.");
+                    setErrorLabel(error,
+                        "Failed to parse data: index out of bounds.");
                 }
             });
         } catch (Exception e) {
@@ -93,8 +95,10 @@ public class CSVDataReader {
                     .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                     .build();
         } catch (FileNotFoundException e) {
-            setErrorLabel(error, "Failed to create CSV reader as\n\"" + file + "\"\n was not found.");
-            throw new RuntimeException( "Failed to create CSV reader for file: " + file, e);
+            setErrorLabel(error, "Failed to create CSV reader as\n\""
+                + file + "\"\n was not found.");
+            throw new RuntimeException(
+                "Failed to create CSV reader for file: " + file, e);
         }
     }
 
@@ -137,13 +141,13 @@ public class CSVDataReader {
     /**
      * Replaces all commas in a string with empty space and then parse
      * string as an integer.
-     * If the parsing is successful, the integer value is returned.
-     * If the parsing fails, an error message is printed and -69 is returned.
+     * If the parsing is successful, the integer value is returned
+     * If the parsing fails, exception is thrown
      * 
      * @param orderItem The string to be processed
      * @param rowID The ID of the row that the string is from
      * @return The integer value of the string after replacing commas,
-     * or -69 if parsing fails
+     * @throws NumberFormatException if parsing fails
      */
     protected static int replaceCommaAndParse(String orderItem, int rowID){
         try{
