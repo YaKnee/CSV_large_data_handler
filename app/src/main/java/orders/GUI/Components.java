@@ -1,6 +1,5 @@
 package orders.GUI;
 
-// import com.github.javafx.chart.zooming.ZoomManager;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -13,16 +12,17 @@ import java.util.function.Function;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -35,6 +35,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.util.StringConverter;
 import orders.CustomerPerformance;
 import orders.OrderObjects.Order;
 
@@ -44,8 +45,7 @@ import orders.OrderObjects.Order;
 public class Components {
 
     private final static NumberFormat numberFormat =
-    NumberFormat.getNumberInstance(Locale.US);
-
+        NumberFormat.getNumberInstance(Locale.US);
 
     /**
      * Creates a Hyperlink to the GitHub repository of a project.
@@ -77,9 +77,6 @@ public class Components {
      * @param orders ArrayList of Order objects representing orders to analyze.
      * @return A TableView containing customer performance metrics including:
      *         name, ID, total orders, total sales, and total profits.
-     *
-     * @SuppressWarnings({"unchecked", "deprecation"})
-     *      Used to suppress unchecked and deprecated warnings in the method.
      */
     @SuppressWarnings({ "unchecked", "deprecation" })
     public static TableView<CustomerPerformance>
@@ -163,6 +160,7 @@ public class Components {
             });
         }
         performanceTable.setItems(performanceList);
+        performanceTable.getStyleClass().add("table-view");
         return performanceTable;
     }
 
@@ -304,9 +302,12 @@ public class Components {
             rowCol, dateCol, customerCol, locationCol, productCol, logisticCol);
         for(TableColumn col : table.getColumns()){
             col.setResizable(false);
+            // col.getStyleClass().add("column-style");
         }
+
         table.setEditable(false);
         table.setVisible(true);
+        table.getStyleClass().add("table-view");
     }
 
     /**
@@ -350,48 +351,56 @@ public class Components {
         return column;
     }
 
-
     /**
-     * Creates a LineChart based on data map.
+     * Creates a LineChart based on data map with tooltips on data-points.
      *
      * @param map     Data map.
      * @param parent  Parent category.
      * @param child   Child category.
-     * @return        Created LineChart.
+     * @return        LineChart with two series of data.
      */
     @SuppressWarnings("unchecked")
-    public static LineChart<String, Number>createChart(
-            Map<String, ? extends Number> map, String parent, String child) {
-        CategoryAxis xAxis = new CategoryAxis();
+    public static LineChart<Number, Number> createChart(
+    Map<String, ? extends Number> map, String parent, String child) {
+        // CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis xAxis = new NumberAxis();
         NumberAxis yAxis = new NumberAxis();
         xAxis.setLabel(child);
+        xAxis.setForceZeroInRange(false);
         yAxis.setLabel(parent);
         yAxis.setForceZeroInRange(false);
 
-        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle(parent + " per " + child);
 
-        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
+        XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
         series1.setName(parent);
+
 
         long total = map.values().stream().mapToLong(Number::longValue).sum();
         double average = total / map.size();
-        XYChart.Series<String, Number> series2 = new XYChart.Series<>();
+        XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
         series2.setName("Average");
 
-        map.forEach((ch, p) -> {
-            series1.getData().add(new XYChart.Data<>(ch, p));
-            series2.getData().add(new XYChart.Data<>(ch, average));
-        });
+
+        for (Map.Entry<String, ? extends Number> entry : map.entrySet()) {
+            series1.getData().add(new XYChart.Data<>(
+                series1.getData().size() + 1, entry.getValue()));
+            series2.getData().add(new XYChart.Data<>(
+                series2.getData().size() + 1, average));
+        }
 
         chart.getData().addAll(series2, series1);
 
-        for (XYChart.Data<String, Number> dataPoint : series1.getData()) {
+        List<String> keys = new ArrayList<>(map.keySet());
+        int i = 0;
+        for (XYChart.Data<Number, Number> dataPoint : series1.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
-                dataPoint.getXValue().toString() + ": "
+                keys.get(i++) + ": "
                 + numberFormat.format(dataPoint.getYValue())));
         }
-        for (XYChart.Data<String, Number> dataPoint : series2.getData()) {
+
+        for (XYChart.Data<Number, Number> dataPoint : series2.getData()) {
             Tooltip.install(dataPoint.getNode(), new Tooltip(
                 "Average: " + numberFormat.format(average)));
             dataPoint.getNode().getStyleClass().add("average-data-point");
@@ -399,11 +408,46 @@ public class Components {
         //tooltip for whole series
         Tooltip.install(series2.getNode(), new Tooltip("Average: "
         + numberFormat.format(average)));
-        
+
+        //convert numbers to map keys
+        xAxis.setTickLabelFormatter(new StringConverter<Number>() {
+            @Override
+            public String toString(Number object) {
+                int index = object.intValue() - 1;
+                return index >= 0 && index < keys.size()
+                    ? (keys.get(index)).toString()
+                    : "";
+            }
+            @Override
+            public Number fromString(String string) {
+                return null; //not needed
+            }
+        });
+        xAxis.setTickLabelRotation(90);
+
         chart.setLegendVisible(true);
-
-        // EventController.handleChartZoom(chart, xAxis, yAxis);
-
+        new ChartMouseHandler(chart);
         return chart;
+    }
+    
+    @SuppressWarnings({ "unchecked", "deprecation" })
+    public static TableView<Map.Entry<String, ? extends Number>> createTotalsTable(
+    Map<String, ? extends Number> map, String parent, String child) {
+        TableView<Map.Entry<String, ? extends Number>> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        TableColumn<Map.Entry<String, ? extends Number>, String> subCatCol =
+            new TableColumn<>(child);
+        subCatCol.setCellValueFactory(data ->
+            new SimpleStringProperty(data.getValue().getKey()));
+        subCatCol.setStyle("-fx-alignment: center");
+        TableColumn<Map.Entry<String, ? extends Number>, Number> numberCol =
+            new TableColumn<>("Total " + parent);
+        numberCol.setCellValueFactory(data ->
+            new SimpleIntegerProperty(data.getValue().getValue().intValue()));
+        numberCol.setStyle("-fx-alignment: center");
+        table.getColumns().addAll(subCatCol, numberCol);
+        table.getItems().addAll(map.entrySet());
+
+        return table;
     }
 }
