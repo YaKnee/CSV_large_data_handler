@@ -15,7 +15,7 @@
 
 ### Via Git Repository:
 1. Create new folder (remember path to folder),
-2. Clone repository into folder: Download zip and extract <strong><em>or</em></strong> use CLI command ```git clone https://github.com/se-5G00DL97/final-assignment-YaKnee.git```,
+2. Clone repository into folder: Download zip and extract <strong><em>or</em></strong> use CLI command ```git clone https://github.com/YaKnee/CSV_large_data_handler.git```,
 3. Open folder: Right click -> open <strong><em>or</em></strong> use CLI command: ```cd path/to/folder```,
 4.  | Option 1 | Option 2 |
     | :---: | :---: |
